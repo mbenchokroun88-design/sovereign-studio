@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { ProjectsProvider } from "@/lib/store/projects";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -77,14 +79,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Mohamed Benchokroun — Visual Architect & Designer · Rabat" },
+      {
+        name: "description",
+        content:
+          "Studio de design institutionnel à Rabat. Identités visuelles, rapports, événements, 3D et plateformes numériques pour la finance, l'énergie et le secteur public.",
+      },
+      { name: "author", content: "Mohamed Benchokroun" },
+      { property: "og:title", content: "Mohamed Benchokroun — Visual Architect & Designer" },
+      { property: "og:description", content: "Design institutionnel pour clients européens et américains." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -118,8 +123,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <ProjectsProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="top-right" />
+      </ProjectsProvider>
     </QueryClientProvider>
   );
 }
