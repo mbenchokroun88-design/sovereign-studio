@@ -1,0 +1,145 @@
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { SiteLayout } from "@/components/site/SiteLayout";
+import { MediaGallery } from "@/components/site/MediaViewer";
+import { CATEGORY_LABELS, useProjects } from "@/lib/store/projects";
+
+export const Route = createFileRoute("/portfolio/$slug")({
+  component: ProjectDetail,
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="container-x py-32 text-center">
+        <p className="eyebrow mb-4">404</p>
+        <h1 className="font-serif text-4xl text-brand">Projet introuvable</h1>
+        <Link to="/portfolio" className="mt-6 inline-block text-sm text-gold gold-underline">
+          ← Retour au portfolio
+        </Link>
+      </div>
+    </SiteLayout>
+  ),
+});
+
+function ProjectDetail() {
+  const { slug } = Route.useParams();
+  const { projects, getBySlug } = useProjects();
+  const project = getBySlug(slug);
+
+  if (!project) {
+    throw notFound();
+  }
+
+  const related = projects.filter((p) => p.id !== project.id && p.category === project.category).slice(0, 3);
+
+  return (
+    <SiteLayout>
+      <article>
+        {/* HERO */}
+        <header className="relative bg-brand text-canvas overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <img src={project.cover} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand to-transparent" />
+          </div>
+          <div className="relative container-x pt-12 pb-16 md:pt-20 md:pb-24">
+            <Link to="/portfolio" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gold hover:text-gold-soft mb-12">
+              <ArrowLeft size={14} /> Retour à l'index
+            </Link>
+            <p className="eyebrow text-gold-soft mb-4">{CATEGORY_LABELS[project.category]}</p>
+            <h1 className="font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight text-balance max-w-4xl">
+              {project.title}
+            </h1>
+            <p className="mt-8 text-lg text-canvas/80 max-w-2xl">{project.summary}</p>
+          </div>
+        </header>
+
+        {/* META */}
+        <section className="border-b border-border bg-white">
+          <div className="container-x py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <Meta label="Client" value={project.client} />
+            <Meta label="Année" value={project.year} />
+            <Meta label="Catégorie" value={CATEGORY_LABELS[project.category]} />
+            <Meta label="Tags" value={project.tags?.join(" · ") || "—"} />
+          </div>
+        </section>
+
+        {/* COVER */}
+        <section className="container-x py-12 md:py-16">
+          <div className="aspect-[16/9] overflow-hidden bg-muted">
+            <img src={project.cover} alt={project.title} className="w-full h-full object-cover" />
+          </div>
+        </section>
+
+        {/* DESCRIPTION */}
+        <section className="container-x pb-16">
+          <div className="grid md:grid-cols-3 gap-10">
+            <div>
+              <p className="eyebrow">À propos du projet</p>
+            </div>
+            <div className="md:col-span-2 prose-lg">
+              <p className="font-serif text-2xl md:text-3xl text-brand leading-snug text-balance">
+                {project.description}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* MEDIA GALLERY */}
+        {project.media.length > 0 && (
+          <section className="bg-white border-y border-border">
+            <div className="container-x py-16 md:py-20">
+              <div className="flex items-end justify-between mb-8 border-b border-border pb-4">
+                <h2 className="font-serif text-3xl text-brand">Galerie · Médias</h2>
+                <span className="text-xs uppercase tracking-widest text-ink-muted">
+                  {project.media.length} élément{project.media.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              <MediaGallery media={project.media} />
+            </div>
+          </section>
+        )}
+
+        {/* RELATED */}
+        {related.length > 0 && (
+          <section className="container-x py-20">
+            <h2 className="font-serif text-3xl text-brand mb-8">Projets similaires</h2>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+              {related.map((p) => (
+                <Link
+                  key={p.id}
+                  to="/portfolio/$slug"
+                  params={{ slug: p.slug }}
+                  className="group"
+                >
+                  <div className="aspect-[4/3] overflow-hidden bg-muted">
+                    <img src={p.cover} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  </div>
+                  <h3 className="mt-3 font-serif text-lg text-brand group-hover:text-gold">{p.title}</h3>
+                  <p className="text-xs text-ink-muted">{p.client}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* CTA */}
+        <section className="bg-brand text-canvas">
+          <div className="container-x py-20 text-center">
+            <h2 className="font-serif text-4xl md:text-5xl italic text-gold">Un projet similaire ?</h2>
+            <p className="mt-4 text-canvas/80 max-w-xl mx-auto">Discutons de votre prochaine mission institutionnelle.</p>
+            <Link to="/contact" className="mt-8 inline-flex items-center gap-2 bg-gold text-brand px-6 py-3 font-medium hover:bg-gold-soft">
+              Démarrer un projet <ArrowUpRight size={16} />
+            </Link>
+          </div>
+        </section>
+      </article>
+    </SiteLayout>
+  );
+}
+
+function Meta({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-widest text-ink-muted mb-2">{label}</p>
+      <p className="text-sm text-brand font-medium">{value}</p>
+    </div>
+  );
+}
