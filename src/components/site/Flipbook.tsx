@@ -213,7 +213,7 @@ export function Flipbook({ url, caption }: FlipbookProps) {
               {pages.map((src, i) => (
                 <Page key={i} src={src} idx={i} total={pages.length} />
               ))}
-            </HTMLFlipBook>
+            </HTMLFlipBookAny>
           </div>
         )}
       </div>
