@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Globe2, Award, Sparkles } from "lucide-react";
 import { useProjects, CATEGORY_LABELS } from "@/lib/store/projects";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProjectCard } from "@/components/site/ProjectCard";
@@ -48,57 +48,114 @@ function Index() {
   return (
     <SiteLayout>
       {/* HERO */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-brand text-canvas isolate">
+        {/* Background image */}
         <div className="absolute inset-0 -z-10">
           <img
             src={heroImg}
             alt=""
             width={1920}
             height={1080}
-            className="w-full h-full object-cover animate-kenburns"
+            fetchPriority="high"
+            className="w-full h-full object-cover opacity-60 animate-kenburns"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-brand/85 via-brand/60 to-canvas" />
+          <div className="absolute inset-0 bg-gradient-to-br from-brand via-brand/90 to-brand/70" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand via-transparent to-transparent" />
+          {/* Decorative grid */}
+          <div className="absolute inset-0 hero-grid opacity-50" />
+          {/* Gold glow */}
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-gold/20 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-gold/10 blur-3xl" />
         </div>
 
-        <div className="container-x pt-24 pb-32 md:pt-40 md:pb-48 text-canvas">
-          <div className="max-w-3xl animate-fade-up">
-            <p className="eyebrow text-gold-soft mb-6">Rabat / Global · Visual Architect & Designer</p>
-            <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight text-balance">
-              Mohamed <span className="italic text-gold">Benchokroun</span>
-            </h1>
-            <p className="mt-8 text-lg md:text-xl text-canvas/85 font-light leading-relaxed max-w-2xl text-pretty">
-              Concepteur d'identités visuelles et d'expériences institutionnelles pour les leaders de la finance, de l'énergie et du secteur public — du Maroc à l'international.
+        <div className="container-x relative pt-28 pb-24 md:pt-36 md:pb-32 lg:pt-44 lg:pb-40 min-h-[92vh] flex flex-col justify-center">
+          {/* Top meta line */}
+          <div className="flex items-center gap-4 mb-10 animate-fade-up">
+            <span className="h-px w-12 bg-gold" />
+            <p className="eyebrow text-gold-soft m-0">Rabat · Paris · Washington · 2026 Portfolio</p>
+          </div>
+
+          {/* Headline */}
+          <h1
+            className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9rem] leading-[0.88] tracking-tight text-balance animate-fade-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <span className="block">Design</span>
+            <span className="block">
+              <span className="italic text-shimmer">institutionnel</span>
+            </span>
+            <span className="block text-canvas/85">de classe mondiale.</span>
+          </h1>
+
+          {/* Sub-row */}
+          <div
+            className="mt-12 grid md:grid-cols-[1.2fr_1fr] gap-10 md:gap-16 items-end animate-fade-up"
+            style={{ animationDelay: "0.25s" }}
+          >
+            <p className="text-lg md:text-xl text-canvas/80 font-light leading-relaxed max-w-xl text-pretty">
+              <span className="text-gold">Mohamed Benchokroun</span> — concepteur d'identités, rapports et expériences visuelles pour les institutions financières, ministères et organisations internationales.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
+
+            <div className="flex flex-wrap gap-3">
               <Link
                 to="/portfolio"
-                className="inline-flex items-center gap-2 bg-gold text-brand font-medium px-6 py-3 hover:bg-gold-soft transition-colors"
+                className="group inline-flex items-center gap-3 bg-gold text-brand font-medium px-7 py-4 hover:bg-gold-soft transition-all hover:gap-4"
               >
-                Voir le portfolio <ArrowRight size={16} />
+                Voir le portfolio
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-2 border border-canvas/40 text-canvas px-6 py-3 hover:bg-canvas hover:text-brand transition-colors"
+                className="inline-flex items-center gap-2 border border-canvas/30 text-canvas px-7 py-4 hover:bg-canvas hover:text-brand transition-colors backdrop-blur-sm"
               >
                 Démarrer un projet
               </Link>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* CLIENTS */}
-      <section className="border-y border-border bg-white">
-        <div className="container-x py-10">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <p className="eyebrow shrink-0">Ils nous font confiance</p>
-            <div className="flex-1 flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium text-ink-muted">
-              {CLIENTS.map((c) => (
-                <span key={c} className="font-serif text-base text-brand/70">
-                  {c}
-                </span>
-              ))}
+          {/* Stats / trust */}
+          <div
+            className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 border-t border-canvas/15 pt-10 animate-fade-up"
+            style={{ animationDelay: "0.4s" }}
+          >
+            {[
+              { icon: Award, k: "120+", v: "Projets livrés" },
+              { icon: Globe2, k: "14", v: "Pays couverts" },
+              { icon: Sparkles, k: "12 ans", v: "D'expertise" },
+              { icon: ArrowUpRight, k: "EU · US · MA", v: "Clients institutionnels" },
+            ].map(({ icon: Icon, k, v }) => (
+              <div key={v} className="flex items-start gap-3">
+                <Icon size={18} className="text-gold mt-1 shrink-0" />
+                <div>
+                  <div className="font-serif text-2xl md:text-3xl text-canvas">{k}</div>
+                  <div className="text-[11px] uppercase tracking-widest text-canvas/55 mt-1">{v}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Scroll cue */}
+          <div className="hidden md:flex flex-col items-center gap-2 absolute bottom-8 left-1/2 -translate-x-1/2 text-canvas/60">
+            <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
+            <div className="w-px h-10 bg-canvas/20 relative overflow-hidden">
+              <span className="absolute top-0 left-0 w-px h-3 bg-gold animate-scroll-dot" />
             </div>
+          </div>
+        </div>
+
+        {/* Marquee strip */}
+        <div className="relative border-t border-canvas/15 bg-brand/60 backdrop-blur-sm overflow-hidden">
+          <div className="flex animate-marquee whitespace-nowrap py-4 will-change-transform">
+            {[...Array(2)].map((_, dup) => (
+              <div key={dup} className="flex items-center gap-12 px-6 font-serif text-xl md:text-2xl text-canvas/40 shrink-0">
+                {CLIENTS.map((c) => (
+                  <span key={c} className="flex items-center gap-12">
+                    {c}
+                    <span className="text-gold">✦</span>
+                  </span>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </section>
