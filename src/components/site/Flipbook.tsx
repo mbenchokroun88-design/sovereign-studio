@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState, forwardRef } from "react";
 import HTMLFlipBook from "react-pageflip";
+const HTMLFlipBookAny = HTMLFlipBook as any;
 import { Loader2, Maximize2, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { isDriveUrl, toDrivePreview } from "@/lib/store/projects";
 
 // pdf.js dynamic loader (browser only)
 async function loadPdfJs() {
   const pdfjsLib = await import("pdfjs-dist");
-  // @ts-expect-error vite ?url import
-  const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+  const workerMod: any = await import(
+    /* @vite-ignore */ "pdfjs-dist/build/pdf.worker.min.mjs?url"
+  );
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerMod.default;
   return pdfjsLib;
 }
 
@@ -181,8 +183,7 @@ export function Flipbook({ url, caption }: FlipbookProps) {
           </div>
         ) : (
           <div className="book-shadow">
-            {/* @ts-expect-error react-pageflip types loose */}
-            <HTMLFlipBook
+            <HTMLFlipBookAny
               ref={bookRef}
               width={pageWidth}
               height={pageHeight}
