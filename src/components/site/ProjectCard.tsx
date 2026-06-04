@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
-import { CATEGORY_LABELS, type Project } from "@/lib/store/projects";
+import { CATEGORY_LABELS, isDriveUrl, toDriveImage, type Project } from "@/lib/store/projects";
 
 export function ProjectCard({ project, variant = "default" }: { project: Project; variant?: "default" | "feature" }) {
+  const cover = project.cover && isDriveUrl(project.cover) ? toDriveImage(project.cover) : project.cover;
   if (variant === "feature") {
     return (
       <Link
@@ -12,7 +13,7 @@ export function ProjectCard({ project, variant = "default" }: { project: Project
       >
         <div className="relative aspect-[4/5] overflow-hidden bg-muted">
           <img
-            src={project.cover}
+            src={cover}
             alt={project.title}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
@@ -45,7 +46,7 @@ export function ProjectCard({ project, variant = "default" }: { project: Project
     >
       <div className="aspect-[4/3] overflow-hidden bg-muted">
         <img
-          src={project.cover}
+          src={cover}
           alt={project.title}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
