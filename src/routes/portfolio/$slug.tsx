@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { MediaGallery } from "@/components/site/MediaViewer";
-import { CATEGORY_LABELS, useProjects } from "@/lib/store/projects";
+import { CATEGORY_LABELS, SLOT_LABELS, SLOT_ORDER, isDriveUrl, toDriveImage, useProjects, type MediaItem, type MediaSlot } from "@/lib/store/projects";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -21,14 +21,27 @@ export const Route = createFileRoute("/portfolio/$slug")({
 
 function ProjectDetail() {
   const { slug } = Route.useParams();
-  const { projects, getBySlug } = useProjects();
+  const { projects, getBySlug, isLoading } = useProjects();
   const project = getBySlug(slug);
 
-  if (!project) {
+  if (!project && !isLoading) {
     throw notFound();
+  }
+  if (!project) {
+    return (
+      <SiteLayout>
+        <div className="container-x py-32 text-center text-ink-muted text-sm">Chargement…</div>
+      </SiteLayout>
+    );
   }
 
   const related = projects.filter((p) => p.id !== project.id && p.category === project.category).slice(0, 3);
+
+  // Group media by slot, preserving SLOT_ORDER
+  const grouped = SLOT_ORDER
+    .map((slot) => ({ slot, items: project.media.filter((m) => m.slot === slot) }))
+    .filter((g) => g.items.length > 0);
+  const cover = project.cover && isDriveUrl(project.cover) ? toDriveImage(project.cover) : project.cover;
 
   return (
     <SiteLayout>
@@ -36,7 +49,7 @@ function ProjectDetail() {
         {/* HERO */}
         <header className="relative bg-brand text-canvas overflow-hidden">
           <div className="absolute inset-0 opacity-30">
-            <img src={project.cover} alt="" className="w-full h-full object-cover" />
+            {cover && <img src={cover} alt="" className="w-full h-full object-cover" />}
             <div className="absolute inset-0 bg-gradient-to-t from-brand to-transparent" />
           </div>
           <div className="relative container-x pt-12 pb-16 md:pt-20 md:pb-24">
@@ -62,11 +75,11 @@ function ProjectDetail() {
         </section>
 
         {/* COVER */}
-        <section className="container-x py-12 md:py-16">
+        {cover && <section className="container-x py-12 md:py-16">
           <div className="aspect-[16/9] overflow-hidden bg-muted">
-            <img src={project.cover} alt={project.title} className="w-full h-full object-cover" />
+            <img src={cover} alt={project.title} className="w-full h-full object-cover" />
           </div>
-        </section>
+        </section>}
 
         {/* DESCRIPTION */}
         <section className="container-x pb-16">
@@ -82,17 +95,13 @@ function ProjectDetail() {
           </div>
         </section>
 
-        {/* MEDIA GALLERY */}
-        {project.media.length > 0 && (
+        {/* MEDIA — GROUPED BY SLOT */}
+        {grouped.length > 0 && (
           <section className="bg-white border-y border-border">
-            <div className="container-x py-16 md:py-20">
-              <div className="flex items-end justify-between mb-8 border-b border-border pb-4">
-                <h2 className="font-serif text-3xl text-brand">Galerie · Médias</h2>
-                <span className="text-xs uppercase tracking-widest text-ink-muted">
-                  {project.media.length} élément{project.media.length > 1 ? "s" : ""}
-                </span>
-              </div>
-              <MediaGallery media={project.media} />
+            <div className="container-x py-16 md:py-20 space-y-14">
+              {grouped.map(({ slot, items }) => (
+                <MediaSection key={slot} slot={slot} items={items} />
+              ))}
             </div>
           </section>
         )}
@@ -110,7 +119,7 @@ function ProjectDetail() {
                   className="group"
                 >
                   <div className="aspect-[4/3] overflow-hidden bg-muted">
-                    <img src={p.cover} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <img src={isDriveUrl(p.cover) ? toDriveImage(p.cover) : p.cover} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   </div>
                   <h3 className="mt-3 font-serif text-lg text-brand group-hover:text-gold">{p.title}</h3>
                   <p className="text-xs text-ink-muted">{p.client}</p>
@@ -132,6 +141,18 @@ function ProjectDetail() {
         </section>
       </article>
     </SiteLayout>
+  );
+}
+
+function MediaSection({ slot, items }: { slot: MediaSlot; items: MediaItem[] }) {
+  return (
+    <div>
+      <div className="flex items-end justify-between border-b border-border pb-3 mb-6">
+        <h2 className="font-serif text-2xl md:text-3xl text-brand">{SLOT_LABELS[slot]}</h2>
+        <span className="text-[10px] uppercase tracking-[0.3em] text-ink-muted">{items.length} élément{items.length > 1 ? "s" : ""}</span>
+      </div>
+      <MediaGallery media={items} />
+    </div>
   );
 }
 
