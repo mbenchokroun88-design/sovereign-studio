@@ -1,5 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
-import { X, ChevronLeft, ChevronRight, Maximize2, BookOpen, Play, Image as ImgIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  BookOpen,
+  Play,
+  Image as ImgIcon,
+  ExternalLink,
+  Loader2,
+} from "lucide-react";
 import type { MediaItem } from "@/lib/store/projects";
 import { toDrivePreview, toVideoEmbed } from "@/lib/store/projects";
 
@@ -161,24 +171,114 @@ function MediaFull({ item }: { item: MediaItem }) {
 }
 
 function Flipbook({ url, caption }: { url: string; caption?: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  const toggleFullscreen = useCallback(async () => {
+    const el = wrapRef.current;
+    if (!el) return;
+    try {
+      if (!document.fullscreenElement) {
+        await el.requestFullscreen();
+        setFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setFullscreen(false);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
   return (
-    <div className="w-full max-w-5xl h-full flex flex-col">
-      <div className="flex-1 flex items-center justify-center">
-        <div className="relative w-full max-w-4xl aspect-[3/4] md:aspect-[4/3] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
-          <div className="absolute inset-y-0 left-1/2 w-px bg-black/10 z-10 shadow-[0_0_20px_rgba(0,0,0,0.15)] hidden md:block" />
+    <div
+      ref={wrapRef}
+      className="w-full h-full flex flex-col items-center justify-center gap-6 px-2 md:px-8"
+    >
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 text-canvas/80 text-xs uppercase tracking-widest">
+        <BookOpen size={14} className="text-gold" />
+        <span>{caption || "Document"}</span>
+        <span className="opacity-40">·</span>
+        <span className="opacity-60 hidden sm:inline">Tournez les pages avec les flèches du document</span>
+      </div>
+
+      {/* Book stage with perspective */}
+      <div
+        className="relative w-full max-w-6xl flex-1 flex items-center justify-center"
+        style={{ perspective: "2400px" }}
+      >
+        {/* Ambient gold glow */}
+        <div className="absolute inset-0 -z-10 flex items-center justify-center pointer-events-none">
+          <div className="w-3/4 h-3/4 rounded-full bg-gold/15 blur-[120px]" />
+        </div>
+
+        <div
+          className="relative w-full max-w-5xl aspect-[16/10] book-shadow bg-white animate-fade-up"
+          style={{ transform: "rotateX(2deg)" }}
+        >
+          {/* Book spine center crease */}
+          <div className="absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 z-20 pointer-events-none hidden md:block">
+            <div className="w-full h-full bg-gradient-to-r from-black/30 via-black/10 to-black/30" />
+          </div>
+          {/* Gold corner accents */}
+          <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 border-gold z-30 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-10 h-10 border-t-2 border-r-2 border-gold z-30 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-10 h-10 border-b-2 border-l-2 border-gold z-30 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-10 h-10 border-b-2 border-r-2 border-gold z-30 pointer-events-none" />
+
+          {/* Loading state */}
+          {!loaded && (
+            <div className="absolute inset-0 grid place-items-center bg-white z-10">
+              <div className="flex flex-col items-center gap-3 text-brand/70">
+                <Loader2 className="animate-spin text-gold" size={28} />
+                <span className="text-[10px] uppercase tracking-[0.3em]">Ouverture du document</span>
+              </div>
+            </div>
+          )}
+
           <iframe
             src={toDrivePreview(url)}
-            className="w-full h-full"
+            onLoad={() => setLoaded(true)}
+            className="w-full h-full relative z-0"
             title={caption || "Flipbook"}
-            allow="autoplay"
+            allow="autoplay; fullscreen"
           />
+
+          {/* Page edge highlight (right side) */}
+          <div className="absolute right-0 top-2 bottom-2 w-1 bg-gradient-to-b from-transparent via-black/10 to-transparent pointer-events-none hidden md:block" />
         </div>
+
+        {/* Floor reflection */}
+        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-black/40 blur-2xl rounded-full -z-10" />
       </div>
-      {caption && (
-        <p className="text-center text-canvas/70 text-xs uppercase tracking-widest mt-3">
-          {caption} — utilisez les flèches du document pour tourner les pages
-        </p>
-      )}
+
+      {/* Bottom controls */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggleFullscreen}
+          className="inline-flex items-center gap-2 border border-canvas/30 text-canvas px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand hover:border-gold transition-colors"
+        >
+          <Maximize2 size={14} />
+          {fullscreen ? "Quitter le plein écran" : "Plein écran"}
+        </button>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-canvas/60 hover:text-gold px-4 py-2 text-xs uppercase tracking-widest transition-colors"
+        >
+          <ExternalLink size={14} />
+          Ouvrir l'original
+        </a>
+      </div>
     </div>
   );
 }
