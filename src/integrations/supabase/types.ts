@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          created_at: string
+          href: string
+          id: string
+          logo_url: string
+          name: string
+          position: number
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          href?: string
+          id?: string
+          logo_url?: string
+          name?: string
+          position?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          href?: string
+          id?: string
+          logo_url?: string
+          name?: string
+          position?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
+      hero_slides: {
+        Row: {
+          created_at: string
+          cta_href: string
+          cta_label: string
+          eyebrow: string
+          id: string
+          image_url: string
+          position: number
+          subtitle: string
+          title: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          cta_href?: string
+          cta_label?: string
+          eyebrow?: string
+          id?: string
+          image_url?: string
+          position?: number
+          subtitle?: string
+          title?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          cta_href?: string
+          cta_label?: string
+          eyebrow?: string
+          id?: string
+          image_url?: string
+          position?: number
+          subtitle?: string
+          title?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           category: string
