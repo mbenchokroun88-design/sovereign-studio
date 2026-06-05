@@ -526,3 +526,163 @@ function Field({ label, required, help, children }: { label: string; required?: 
     </div>
   );
 }
+
+// ============================================================
+// HERO SLIDER ADMIN
+// ============================================================
+function HeroAdmin() {
+  const { slides, add, update, remove, duplicate } = useHeroSlides();
+
+  async function create() {
+    await add({
+      eyebrow: "Nouveau slide",
+      title: "Titre du slide — *mot doré* ici.",
+      subtitle: "Sous-titre descriptif.",
+      image_url: "",
+      cta_label: "Voir le portfolio",
+      cta_href: "/portfolio",
+      position: (slides[slides.length - 1]?.position ?? 0) + 1,
+      visible: true,
+    });
+    toast.success("Slide créé");
+  }
+
+  return (
+    <section className="container-x py-10">
+      <div className="flex justify-between items-center mb-4">
+        <p className="text-sm text-ink-muted max-w-2xl">
+          Astuce : entourez un mot de <code className="bg-muted px-1">*astérisques*</code> dans le titre pour qu'il s'affiche en italique doré (effet shimmer).
+        </p>
+        <button onClick={create} className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand">
+          <Plus size={14} /> Nouveau slide
+        </button>
+      </div>
+      <div className="space-y-4">
+        {slides.length === 0 && <p className="p-8 text-center text-ink-muted text-sm bg-white border border-border">Aucun slide.</p>}
+        {slides.map((s) => (
+          <HeroSlideEditor
+            key={s.id}
+            slide={s}
+            onUpdate={(p) => update(s.id, p)}
+            onDelete={async () => {
+              if (confirm("Supprimer ce slide ?")) { await remove(s.id); toast.success("Slide supprimé"); }
+            }}
+            onDuplicate={async () => { await duplicate(s); toast.success("Slide dupliqué"); }}
+          />
+        ))}
+      </div>
+      <style>{`.form-input { width: 100%; background: white; border: 1px solid var(--rule); padding: 0.625rem 0.75rem; font-size: 0.875rem; color: var(--ink); outline: none; transition: border-color 0.15s; } .form-input:focus { border-color: var(--gold); }`}</style>
+    </section>
+  );
+}
+
+function HeroSlideEditor({ slide, onUpdate, onDelete, onDuplicate }: { slide: HeroSlide; onUpdate: (p: Partial<HeroSlide>) => Promise<void>; onDelete: () => void; onDuplicate: () => void }) {
+  const [draft, setDraft] = useState(slide);
+  const [saving, setSaving] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(slide);
+
+  function set<K extends keyof HeroSlide>(k: K, v: HeroSlide[K]) {
+    setDraft((d) => ({ ...d, [k]: v }));
+  }
+
+  return (
+    <div className="bg-white border border-border p-5">
+      <div className="flex items-start gap-5">
+        <div className="w-32 aspect-[4/3] bg-muted overflow-hidden flex-shrink-0">
+          {draft.image_url && <img src={draft.image_url} alt="" className="w-full h-full object-cover" />}
+        </div>
+        <div className="flex-1 grid md:grid-cols-2 gap-3">
+          <Field label="Eyebrow (sur-titre)"><input value={draft.eyebrow} onChange={(e) => set("eyebrow", e.target.value)} className="form-input" /></Field>
+          <Field label="Image (URL)"><input value={draft.image_url} onChange={(e) => set("image_url", e.target.value)} className="form-input" placeholder="https://..." /></Field>
+          <Field label="Titre (utilisez *mot* pour doré italique)"><textarea value={draft.title} onChange={(e) => set("title", e.target.value)} rows={2} className="form-input resize-none" /></Field>
+          <Field label="Sous-titre"><textarea value={draft.subtitle} onChange={(e) => set("subtitle", e.target.value)} rows={2} className="form-input resize-none" /></Field>
+          <Field label="CTA — Libellé"><input value={draft.cta_label} onChange={(e) => set("cta_label", e.target.value)} className="form-input" /></Field>
+          <Field label="CTA — Lien"><input value={draft.cta_href} onChange={(e) => set("cta_href", e.target.value)} className="form-input" placeholder="/portfolio" /></Field>
+          <Field label="Position"><input type="number" value={draft.position} onChange={(e) => set("position", Number(e.target.value))} className="form-input" /></Field>
+          <Field label="Visible">
+            <label className="inline-flex items-center gap-2 mt-3">
+              <input type="checkbox" checked={draft.visible} onChange={(e) => set("visible", e.target.checked)} />
+              <span className="text-sm">Afficher dans le slider</span>
+            </label>
+          </Field>
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border">
+        <button onClick={onDuplicate} className="text-xs px-3 py-1.5 border border-border hover:border-gold inline-flex items-center gap-1"><Copy size={12} /> Dupliquer</button>
+        <button onClick={onDelete} className="text-xs px-3 py-1.5 border border-destructive/30 text-destructive hover:bg-destructive hover:text-white inline-flex items-center gap-1"><Trash2 size={12} /> Supprimer</button>
+        <button
+          disabled={!dirty || saving}
+          onClick={async () => { setSaving(true); try { await onUpdate(draft); toast.success("Slide mis à jour"); } finally { setSaving(false); } }}
+          className="text-xs px-4 py-1.5 bg-brand text-brand-foreground hover:bg-gold hover:text-brand inline-flex items-center gap-1 disabled:opacity-40"
+        >
+          {saving && <Loader2 size={12} className="animate-spin" />} Enregistrer
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CLIENTS ADMIN
+// ============================================================
+function ClientsAdmin() {
+  const { clients, add, update, remove } = useClients();
+  const [mode, setMode] = useState<"names" | "logos">("names");
+
+  async function create() {
+    await add({
+      name: "Nouveau client",
+      logo_url: "",
+      href: "",
+      position: (clients[clients.length - 1]?.position ?? 0) + 1,
+      visible: true,
+    });
+    toast.success("Client ajouté");
+  }
+
+  return (
+    <section className="container-x py-10">
+      <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
+        <div className="flex gap-1 bg-white border border-border p-1">
+          <button onClick={() => setMode("names")} className={`text-xs px-3 py-1.5 ${mode === "names" ? "bg-brand text-brand-foreground" : "text-ink-muted hover:text-brand"}`}>Noms uniquement</button>
+          <button onClick={() => setMode("logos")} className={`text-xs px-3 py-1.5 ${mode === "logos" ? "bg-brand text-brand-foreground" : "text-ink-muted hover:text-brand"}`}>Avec logos</button>
+        </div>
+        <button onClick={create} className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand">
+          <Plus size={14} /> Nouveau client
+        </button>
+      </div>
+      <p className="text-xs text-ink-muted mb-4">Astuce : laissez le champ logo vide pour afficher uniquement le nom. Renseignez-le pour afficher le logo à la place.</p>
+      <div className="bg-white border border-border divide-y divide-border">
+        {clients.length === 0 && <p className="p-8 text-center text-ink-muted text-sm">Aucun client.</p>}
+        {clients.map((c) => (
+          <ClientRowEditor key={c.id} client={c} mode={mode} onUpdate={(p) => update(c.id, p)} onDelete={async () => { if (confirm("Supprimer ?")) { await remove(c.id); toast.success("Supprimé"); } }} />
+        ))}
+      </div>
+      <style>{`.form-input { width: 100%; background: white; border: 1px solid var(--rule); padding: 0.5rem 0.75rem; font-size: 0.875rem; color: var(--ink); outline: none; } .form-input:focus { border-color: var(--gold); }`}</style>
+    </section>
+  );
+}
+
+function ClientRowEditor({ client, mode, onUpdate, onDelete }: { client: ClientRow; mode: "names" | "logos"; onUpdate: (p: Partial<ClientRow>) => Promise<void>; onDelete: () => void }) {
+  const [draft, setDraft] = useState(client);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(client);
+
+  return (
+    <div className="flex items-center gap-3 p-3 flex-wrap">
+      <div className="size-12 bg-muted overflow-hidden flex-shrink-0 grid place-items-center">
+        {draft.logo_url ? <img src={draft.logo_url} alt="" className="w-full h-full object-contain" /> : <span className="text-[10px] text-ink-muted">—</span>}
+      </div>
+      <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Nom" className="form-input flex-1 min-w-[140px]" />
+      {mode === "logos" && (
+        <input value={draft.logo_url} onChange={(e) => setDraft({ ...draft, logo_url: e.target.value })} placeholder="URL du logo (png/svg)" className="form-input flex-1 min-w-[200px]" />
+      )}
+      <input value={draft.href} onChange={(e) => setDraft({ ...draft, href: e.target.value })} placeholder="Lien (optionnel)" className="form-input w-44" />
+      <input type="number" value={draft.position} onChange={(e) => setDraft({ ...draft, position: Number(e.target.value) })} className="form-input w-16" />
+      <label className="inline-flex items-center gap-1.5 text-xs">
+        <input type="checkbox" checked={draft.visible} onChange={(e) => setDraft({ ...draft, visible: e.target.checked })} /> Visible
+      </label>
+      <button disabled={!dirty} onClick={async () => { await onUpdate(draft); toast.success("Enregistré"); }} className="text-xs px-3 py-1.5 bg-brand text-brand-foreground hover:bg-gold hover:text-brand disabled:opacity-40">Save</button>
+      <button onClick={onDelete} className="text-xs px-2 py-1.5 text-destructive hover:underline"><Trash2 size={14} /></button>
+    </div>
+  );
+}
