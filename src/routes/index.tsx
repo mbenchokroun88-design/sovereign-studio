@@ -4,6 +4,9 @@ import { useProjects, CATEGORY_LABELS } from "@/lib/store/projects";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProjectCard } from "@/components/site/ProjectCard";
 import heroImg from "@/assets/hero.jpg";
+import { useEffect, useState } from "react";
+import { useHeroSlides } from "@/lib/store/hero";
+import { useClients } from "@/lib/store/clients";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,16 +24,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const CLIENTS = [
-  "World Bank / IFC",
-  "BEI",
-  "Cluster ENR",
-  "Min. Finances",
-  "Min. Artisanat",
-  "Min. Industrie",
-  "Min. Transition Énergétique",
-];
-
 const SERVICES = [
   { id: "01", title: "Identité Visuelle", desc: "Marques institutionnelles, chartes complètes et systèmes d'identité multilingues." },
   { id: "02", title: "Rapports & Édition", desc: "Rapports d'impact, publications, infographies et flipbooks digitaux." },
@@ -42,8 +35,18 @@ const SERVICES = [
 
 function Index() {
   const { projects } = useProjects();
+  const { slides } = useHeroSlides();
+  const { clients } = useClients();
   const featured = projects.filter((p) => p.featured).slice(0, 3);
   const recent = projects.slice(0, 6);
+  const activeSlides = slides.filter((s) => s.visible);
+  const [slideIndex, setSlideIndex] = useState(0);
+  useEffect(() => {
+    if (activeSlides.length < 2) return;
+    const id = setInterval(() => setSlideIndex((i) => (i + 1) % activeSlides.length), 6500);
+    return () => clearInterval(id);
+  }, [activeSlides.length]);
+  const currentSlide = activeSlides[slideIndex];
 
   return (
     <SiteLayout>
@@ -51,14 +54,30 @@ function Index() {
       <section className="relative overflow-hidden bg-brand text-canvas isolate">
         {/* Background image */}
         <div className="absolute inset-0 -z-10">
-          <img
-            src={heroImg}
-            alt=""
-            width={1920}
-            height={1080}
-            fetchPriority="high"
-            className="w-full h-full object-cover opacity-60 animate-kenburns"
-          />
+          {activeSlides.length > 0 ? (
+            activeSlides.map((s, i) => (
+              <img
+                key={s.id}
+                src={s.image_url || heroImg}
+                alt=""
+                width={1920}
+                height={1080}
+                fetchPriority={i === 0 ? "high" : "low"}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ease-in-out ${
+                  i === slideIndex ? "opacity-60 animate-kenburns" : "opacity-0"
+                }`}
+              />
+            ))
+          ) : (
+            <img
+              src={heroImg}
+              alt=""
+              width={1920}
+              height={1080}
+              fetchPriority="high"
+              className="w-full h-full object-cover opacity-60 animate-kenburns"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-br from-brand via-brand/90 to-brand/70" />
           <div className="absolute inset-0 bg-gradient-to-t from-brand via-transparent to-transparent" />
           {/* Decorative grid */}
@@ -70,40 +89,63 @@ function Index() {
 
         <div className="container-x relative pt-28 pb-24 md:pt-36 md:pb-32 lg:pt-44 lg:pb-40 min-h-[92vh] flex flex-col justify-center">
           {/* Top meta line */}
-          <div className="flex items-center gap-4 mb-10 animate-fade-up">
+          <div key={`eb-${currentSlide?.id ?? "default"}`} className="flex items-center gap-4 mb-10 animate-fade-up">
             <span className="h-px w-12 bg-gold" />
-            <p className="eyebrow text-gold-soft m-0">Rabat · Paris · Washington · 2026 Portfolio</p>
+            <p className="eyebrow text-gold-soft m-0">{currentSlide?.eyebrow || "Rabat · Paris · Washington · 2026 Portfolio"}</p>
           </div>
 
           {/* Headline */}
-          <h1
-            className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9rem] leading-[0.88] tracking-tight text-balance animate-fade-up"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <span className="block">Design</span>
-            <span className="block">
-              <span className="italic text-shimmer">institutionnel</span>
-            </span>
-            <span className="block text-canvas/85">de classe mondiale.</span>
-          </h1>
+          {currentSlide ? (
+            <h1
+              key={`t-${currentSlide.id}`}
+              className="font-serif text-[12vw] md:text-[7vw] lg:text-[6.5rem] xl:text-[7.5rem] leading-[0.92] tracking-tight text-balance animate-fade-up max-w-5xl"
+              style={{ animationDelay: "0.1s" }}
+            >
+              {renderHeadline(currentSlide.title)}
+            </h1>
+          ) : (
+            <h1
+              className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9rem] leading-[0.88] tracking-tight text-balance animate-fade-up"
+              style={{ animationDelay: "0.1s" }}
+            >
+              <span className="block">Design</span>
+              <span className="block"><span className="italic text-shimmer">institutionnel</span></span>
+              <span className="block text-canvas/85">de classe mondiale.</span>
+            </h1>
+          )}
 
           {/* Sub-row */}
           <div
+            key={`sr-${currentSlide?.id ?? "default"}`}
             className="mt-12 grid md:grid-cols-[1.2fr_1fr] gap-10 md:gap-16 items-end animate-fade-up"
             style={{ animationDelay: "0.25s" }}
           >
             <p className="text-lg md:text-xl text-canvas/80 font-light leading-relaxed max-w-xl text-pretty">
-              <span className="text-gold">Mohamed Benchokroun</span> — concepteur d'identités, rapports et expériences visuelles pour les institutions financières, ministères et organisations internationales.
+              {currentSlide?.subtitle || (
+                <>
+                  <span className="text-gold">Mohamed Benchokroun</span> — concepteur d'identités, rapports et expériences visuelles pour les institutions financières, ministères et organisations internationales.
+                </>
+              )}
             </p>
 
             <div className="flex flex-wrap gap-3">
-              <Link
-                to="/portfolio"
-                className="group inline-flex items-center gap-3 bg-gold text-brand font-medium px-7 py-4 hover:bg-gold-soft transition-all hover:gap-4"
-              >
-                Voir le portfolio
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-              </Link>
+              {currentSlide?.cta_label ? (
+                <a
+                  href={currentSlide.cta_href || "/portfolio"}
+                  className="group inline-flex items-center gap-3 bg-gold text-brand font-medium px-7 py-4 hover:bg-gold-soft transition-all hover:gap-4"
+                >
+                  {currentSlide.cta_label}
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </a>
+              ) : (
+                <Link
+                  to="/portfolio"
+                  className="group inline-flex items-center gap-3 bg-gold text-brand font-medium px-7 py-4 hover:bg-gold-soft transition-all hover:gap-4"
+                >
+                  Voir le portfolio
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              )}
               <Link
                 to="/contact"
                 className="inline-flex items-center gap-2 border border-canvas/30 text-canvas px-7 py-4 hover:bg-canvas hover:text-brand transition-colors backdrop-blur-sm"
@@ -141,16 +183,39 @@ function Index() {
               <span className="absolute top-0 left-0 w-px h-3 bg-gold animate-scroll-dot" />
             </div>
           </div>
+
+          {/* Slide dots */}
+          {activeSlides.length > 1 && (
+            <div className="absolute bottom-8 right-8 flex flex-col gap-2 z-20">
+              {activeSlides.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSlideIndex(i)}
+                  className={`block transition-all ${i === slideIndex ? "h-8 w-px bg-gold" : "h-3 w-px bg-canvas/40 hover:bg-canvas/70"}`}
+                  aria-label={`Slide ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Marquee strip */}
         <div className="relative border-t border-canvas/15 bg-brand/60 backdrop-blur-sm overflow-hidden">
           <div className="flex animate-marquee whitespace-nowrap py-4 will-change-transform">
             {[...Array(2)].map((_, dup) => (
-              <div key={dup} className="flex items-center gap-12 px-6 font-serif text-xl md:text-2xl text-canvas/40 shrink-0">
-                {CLIENTS.map((c) => (
-                  <span key={c} className="flex items-center gap-12">
-                    {c}
+              <div key={dup} className="flex items-center gap-12 px-6 shrink-0">
+                {clients.filter((c) => c.visible).map((c) => (
+                  <span key={c.id} className="flex items-center gap-12">
+                    {c.logo_url ? (
+                      <img
+                        src={c.logo_url}
+                        alt={c.name}
+                        className="h-10 md:h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="font-serif text-xl md:text-2xl text-canvas/40 hover:text-canvas/80 transition-colors">{c.name}</span>
+                    )}
                     <span className="text-gold">✦</span>
                   </span>
                 ))}
