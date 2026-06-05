@@ -26,7 +26,7 @@ export function useHeroSlides() {
         .select("*")
         .order("position", { ascending: true });
       if (error) throw error;
-      return (data as HeroSlide[]) || [];
+      return ((data as unknown) as HeroSlide[]) || [];
     },
     staleTime: 30_000,
   });

@@ -23,7 +23,7 @@ export function useClients() {
         .select("*")
         .order("position", { ascending: true });
       if (error) throw error;
-      return (data as ClientRow[]) || [];
+      return ((data as unknown) as ClientRow[]) || [];
     },
     staleTime: 30_000,
   });
