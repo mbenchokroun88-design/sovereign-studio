@@ -16,6 +16,8 @@ import {
   type Project,
   type ProjectCategory,
 } from "@/lib/store/projects";
+import { useHeroSlides, type HeroSlide } from "@/lib/store/hero";
+import { useClients, type ClientRow } from "@/lib/store/clients";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -50,6 +52,7 @@ function Admin() {
   const { projects, isLoading, add, update, remove, duplicate } = useProjects();
   const [editing, setEditing] = useState<Project | null>(null);
   const [creating, setCreating] = useState(false);
+  const [tab, setTab] = useState<"projects" | "hero" | "clients">("projects");
 
   return (
     <SiteLayout>
@@ -57,21 +60,40 @@ function Admin() {
         <div className="flex items-end justify-between gap-6 flex-wrap">
           <div>
             <p className="eyebrow mb-2">Console</p>
-            <h1 className="font-serif text-4xl md:text-5xl text-brand">Gestion des projets</h1>
+            <h1 className="font-serif text-4xl md:text-5xl text-brand">Console d'administration</h1>
             <p className="mt-3 text-sm text-ink-muted max-w-xl">
-              Ajoutez, dupliquez, modifiez ou supprimez vos projets. Données persistées dans la base.
-              PDF en flipbook : upload direct (page-turn animé). Vidéos & images : URL Drive/YouTube/Vimeo.
+              Projets, slider d'accueil et clients — modifiables en direct. Les données sont persistées dans la base.
             </p>
           </div>
-          <button
-            onClick={() => setCreating(true)}
-            className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
-          >
-            <Plus size={14} /> Nouveau projet
-          </button>
+          {tab === "projects" && (
+            <button
+              onClick={() => setCreating(true)}
+              className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
+            >
+              <Plus size={14} /> Nouveau projet
+            </button>
+          )}
+        </div>
+        <div className="mt-6 flex gap-1 border-b-0">
+          {[
+            { id: "projects" as const, label: "Projets" },
+            { id: "hero" as const, label: "Slider d'accueil" },
+            { id: "clients" as const, label: "Clients" },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-4 py-2 text-xs uppercase tracking-widest border-b-2 transition-colors ${
+                tab === t.id ? "border-gold text-brand" : "border-transparent text-ink-muted hover:text-brand"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </section>
 
+      {tab === "projects" && (
       <section className="container-x py-10">
         <div className="rounded-sm border border-border bg-white divide-y divide-border">
           {isLoading && (
@@ -144,6 +166,10 @@ function Admin() {
           ))}
         </div>
       </section>
+      )}
+
+      {tab === "hero" && <HeroAdmin />}
+      {tab === "clients" && <ClientsAdmin />}
 
       {(editing || creating) && (
         <ProjectEditor
