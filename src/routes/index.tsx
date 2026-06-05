@@ -33,6 +33,26 @@ const SERVICES = [
   { id: "06", title: "Web & Application", desc: "Design produit, prototypage et accompagnement développement (Lovable, Webflow)." },
 ];
 
+// Render a headline string: text wrapped in *asterisks* is italic gold (shimmer).
+// Lines are separated by literal "\n".
+function renderHeadline(s: string) {
+  const lines = s.split(/\n/);
+  return lines.map((line, li) => {
+    const parts = line.split(/(\*[^*]+\*)/g).filter(Boolean);
+    return (
+      <span key={li} className="block">
+        {parts.map((p, pi) =>
+          p.startsWith("*") && p.endsWith("*") ? (
+            <span key={pi} className="italic text-shimmer">{p.slice(1, -1)}</span>
+          ) : (
+            <span key={pi}>{p}</span>
+          ),
+        )}
+      </span>
+    );
+  });
+}
+
 function Index() {
   const { projects } = useProjects();
   const { slides } = useHeroSlides();
