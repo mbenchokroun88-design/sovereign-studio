@@ -4,7 +4,10 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { MediaGallery } from "@/components/site/MediaViewer";
 import { CATEGORY_LABELS, SLOT_LABELS, SLOT_ORDER, isDriveUrl, toDriveImage, useProjects, type MediaItem, type MediaSlot } from "@/lib/store/projects";
 import { CinematicCarousel } from "@/components/site/CinematicCarousel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { X, ChevronLeft as CL, ChevronRight as CR } from "lucide-react";
+import { toVideoEmbed } from "@/lib/store/projects";
+import { Flipbook } from "@/components/site/Flipbook";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -173,9 +176,48 @@ function MediaSection({ slot, items }: { slot: MediaSlot; items: MediaItem[] }) 
 }
 
 function LightboxMount({ media, initial, onClose }: { media: MediaItem[]; initial: number; onClose: () => void }) {
-  // Reuse MediaGallery lightbox by rendering it and auto-opening via a key hack is overkill.
-  // Simpler: render a dedicated MediaGallery and rely on user to click again. Instead, we open directly here.
-  return <InlineLightbox media={media} initial={initial} onClose={onClose} />;
+  const [i, setI] = useState(initial);
+  const n = media.length;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setI((x) => (x + 1) % n);
+      if (e.key === "ArrowLeft") setI((x) => (x - 1 + n) % n);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [n, onClose]);
+  const m = media[i];
+  const label = (m.label && m.label.trim()) || SLOT_LABELS[m.slot] || "";
+  return (
+    <div className="fixed inset-0 z-[60] bg-brand/95 backdrop-blur-sm flex flex-col">
+      <div className="flex justify-between items-center p-4 text-canvas">
+        <span className="text-xs uppercase tracking-widest opacity-70">{i + 1} / {n} · {label}</span>
+        <button onClick={onClose} className="p-2 hover:text-gold" aria-label="Fermer"><X size={22} /></button>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+        {m.kind === "image" ? (
+          <img src={isDriveUrl(m.url) ? toDriveImage(m.url) : m.url} alt="" className="max-h-full max-w-full object-contain shadow-2xl" />
+        ) : m.kind === "video" ? (
+          <div className="w-full max-w-5xl aspect-video bg-black">
+            <iframe src={toVideoEmbed(m.url)} className="w-full h-full" allow="autoplay; fullscreen" allowFullScreen title={label} />
+          </div>
+        ) : (
+          <div className="w-full h-full min-h-[80vh]"><Flipbook url={m.url} caption={m.caption} /></div>
+        )}
+      </div>
+      {n > 1 && (
+        <div className="flex justify-between p-4">
+          <button onClick={() => setI((x) => (x - 1 + n) % n)} className="p-3 text-canvas hover:text-gold" aria-label="Précédent"><CL size={28} /></button>
+          <button onClick={() => setI((x) => (x + 1) % n)} className="p-3 text-canvas hover:text-gold" aria-label="Suivant"><CR size={28} /></button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function Meta({ label, value }: { label: string; value: string }) {
