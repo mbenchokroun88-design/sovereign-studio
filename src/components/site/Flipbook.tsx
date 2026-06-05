@@ -151,10 +151,22 @@ export function Flipbook({ url, caption }: FlipbookProps) {
     );
   }
 
-  // Book sizing: target ~75vh height, derive width from aspect
-  // Each spread shows 2 pages; per-page aspect = pageW/pageH
-  // We pick a comfortable width range
-  const pageHeight = 720;
+  // Responsive sizing — large by default, fills viewport in fullscreen
+  const [vp, setVp] = useState({ w: 1200, h: 800 });
+  useEffect(() => {
+    const update = () => setVp({ w: window.innerWidth, h: window.innerHeight });
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  // Target ~88vh; on mobile single page, on desktop spread (×2 width)
+  const isMobile = vp.w < 900;
+  const maxH = Math.min(vp.h * (fullscreen ? 0.92 : 0.86), 1100);
+  const maxW = Math.min(vp.w * (fullscreen ? 0.94 : 0.9), 1600);
+  // For spread (2 pages), total width = 2 × pageW. Constrain by width.
+  const wantedSpreadW = maxH * aspect * (isMobile ? 1 : 2);
+  const finalSpreadW = Math.min(wantedSpreadW, maxW);
+  const pageHeight = Math.round(finalSpreadW / (isMobile ? 1 : 2) / aspect);
   const pageWidth = Math.round(pageHeight * aspect);
 
   const loadingPct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
@@ -182,27 +194,27 @@ export function Flipbook({ url, caption }: FlipbookProps) {
             <span className="text-[10px] uppercase tracking-[0.3em]">Ouverture du livre — {loadingPct}%</span>
           </div>
         ) : (
-          <div className="book-shadow">
+          <div className="book-shadow" style={{ perspective: "2400px" }}>
             <HTMLFlipBookAny
               ref={bookRef}
               width={pageWidth}
               height={pageHeight}
               size="stretch"
-              minWidth={260}
-              maxWidth={900}
-              minHeight={400}
-              maxHeight={1200}
-              maxShadowOpacity={0.5}
+              minWidth={280}
+              maxWidth={1100}
+              minHeight={420}
+              maxHeight={1400}
+              maxShadowOpacity={0.7}
               showCover={true}
               mobileScrollSupport={true}
               drawShadow={true}
-              flippingTime={650}
-              usePortrait={true}
+              flippingTime={900}
+              usePortrait={isMobile}
               startZIndex={0}
               autoSize={true}
               clickEventForward={true}
               useMouseEvents={true}
-              swipeDistance={30}
+              swipeDistance={20}
               showPageCorners={true}
               disableFlipByClick={false}
               className=""

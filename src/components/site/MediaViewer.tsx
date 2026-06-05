@@ -107,6 +107,7 @@ export function MediaGallery({ media }: MediaGalleryProps) {
 }
 
 function labelForSlot(m: MediaItem) {
+  if (m.label && m.label.trim()) return m.label.trim();
   if (m.slot && SLOT_LABELS[m.slot]) return SLOT_LABELS[m.slot];
   return m.kind === "image" ? "Image" : m.kind === "video" ? "Vidéo" : "PDF";
 }
@@ -170,7 +171,7 @@ function MediaFull({ item }: { item: MediaItem }) {
     );
   }
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full min-h-[80vh]">
       <Flipbook url={item.url} caption={item.caption} />
     </div>
   );

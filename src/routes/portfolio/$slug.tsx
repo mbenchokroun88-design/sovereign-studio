@@ -3,6 +3,11 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { MediaGallery } from "@/components/site/MediaViewer";
 import { CATEGORY_LABELS, SLOT_LABELS, SLOT_ORDER, isDriveUrl, toDriveImage, useProjects, type MediaItem, type MediaSlot } from "@/lib/store/projects";
+import { CinematicCarousel } from "@/components/site/CinematicCarousel";
+import { useEffect, useState } from "react";
+import { X, ChevronLeft as CL, ChevronRight as CR } from "lucide-react";
+import { toVideoEmbed } from "@/lib/store/projects";
+import { Flipbook } from "@/components/site/Flipbook";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -145,13 +150,72 @@ function ProjectDetail() {
 }
 
 function MediaSection({ slot, items }: { slot: MediaSlot; items: MediaItem[] }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // Use custom label of the first item if all items share it, otherwise slot label
+  const customLabels = Array.from(new Set(items.map((m) => (m.label || "").trim()).filter(Boolean)));
+  const sectionTitle = customLabels.length === 1 ? customLabels[0] : SLOT_LABELS[slot];
+  const isRich = items.length > 3;
   return (
     <div>
       <div className="flex items-end justify-between border-b border-border pb-3 mb-6">
-        <h2 className="font-serif text-2xl md:text-3xl text-brand">{SLOT_LABELS[slot]}</h2>
+        <h2 className="font-serif text-2xl md:text-3xl text-brand">{sectionTitle}</h2>
         <span className="text-[10px] uppercase tracking-[0.3em] text-ink-muted">{items.length} élément{items.length > 1 ? "s" : ""}</span>
       </div>
-      <MediaGallery media={items} />
+      {isRich ? (
+        <>
+          <CinematicCarousel media={items} onOpen={(i) => setOpenIndex(i)} />
+          {openIndex !== null && (
+            <LightboxMount media={items} initial={openIndex} onClose={() => setOpenIndex(null)} />
+          )}
+        </>
+      ) : (
+        <MediaGallery media={items} />
+      )}
+    </div>
+  );
+}
+
+function LightboxMount({ media, initial, onClose }: { media: MediaItem[]; initial: number; onClose: () => void }) {
+  const [i, setI] = useState(initial);
+  const n = media.length;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setI((x) => (x + 1) % n);
+      if (e.key === "ArrowLeft") setI((x) => (x - 1 + n) % n);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [n, onClose]);
+  const m = media[i];
+  const label = (m.label && m.label.trim()) || SLOT_LABELS[m.slot] || "";
+  return (
+    <div className="fixed inset-0 z-[60] bg-brand/95 backdrop-blur-sm flex flex-col">
+      <div className="flex justify-between items-center p-4 text-canvas">
+        <span className="text-xs uppercase tracking-widest opacity-70">{i + 1} / {n} · {label}</span>
+        <button onClick={onClose} className="p-2 hover:text-gold" aria-label="Fermer"><X size={22} /></button>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+        {m.kind === "image" ? (
+          <img src={isDriveUrl(m.url) ? toDriveImage(m.url) : m.url} alt="" className="max-h-full max-w-full object-contain shadow-2xl" />
+        ) : m.kind === "video" ? (
+          <div className="w-full max-w-5xl aspect-video bg-black">
+            <iframe src={toVideoEmbed(m.url)} className="w-full h-full" allow="autoplay; fullscreen" allowFullScreen title={label} />
+          </div>
+        ) : (
+          <div className="w-full h-full min-h-[80vh]"><Flipbook url={m.url} caption={m.caption} /></div>
+        )}
+      </div>
+      {n > 1 && (
+        <div className="flex justify-between p-4">
+          <button onClick={() => setI((x) => (x - 1 + n) % n)} className="p-3 text-canvas hover:text-gold" aria-label="Précédent"><CL size={28} /></button>
+          <button onClick={() => setI((x) => (x + 1) % n)} className="p-3 text-canvas hover:text-gold" aria-label="Suivant"><CR size={28} /></button>
+        </div>
+      )}
     </div>
   );
 }
