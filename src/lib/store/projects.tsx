@@ -97,6 +97,7 @@ export interface MediaItem {
   kind: MediaKind;
   url: string;
   caption?: string;
+  label?: string; // libellé personnalisé pour la section
 }
 
 export interface Project {
