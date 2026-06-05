@@ -3,6 +3,8 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { MediaGallery } from "@/components/site/MediaViewer";
 import { CATEGORY_LABELS, SLOT_LABELS, SLOT_ORDER, isDriveUrl, toDriveImage, useProjects, type MediaItem, type MediaSlot } from "@/lib/store/projects";
+import { CinematicCarousel } from "@/components/site/CinematicCarousel";
+import { useState } from "react";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -145,15 +147,35 @@ function ProjectDetail() {
 }
 
 function MediaSection({ slot, items }: { slot: MediaSlot; items: MediaItem[] }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // Use custom label of the first item if all items share it, otherwise slot label
+  const customLabels = Array.from(new Set(items.map((m) => (m.label || "").trim()).filter(Boolean)));
+  const sectionTitle = customLabels.length === 1 ? customLabels[0] : SLOT_LABELS[slot];
+  const isRich = items.length > 3;
   return (
     <div>
       <div className="flex items-end justify-between border-b border-border pb-3 mb-6">
-        <h2 className="font-serif text-2xl md:text-3xl text-brand">{SLOT_LABELS[slot]}</h2>
+        <h2 className="font-serif text-2xl md:text-3xl text-brand">{sectionTitle}</h2>
         <span className="text-[10px] uppercase tracking-[0.3em] text-ink-muted">{items.length} élément{items.length > 1 ? "s" : ""}</span>
       </div>
-      <MediaGallery media={items} />
+      {isRich ? (
+        <>
+          <CinematicCarousel media={items} onOpen={(i) => setOpenIndex(i)} />
+          {openIndex !== null && (
+            <LightboxMount media={items} initial={openIndex} onClose={() => setOpenIndex(null)} />
+          )}
+        </>
+      ) : (
+        <MediaGallery media={items} />
+      )}
     </div>
   );
+}
+
+function LightboxMount({ media, initial, onClose }: { media: MediaItem[]; initial: number; onClose: () => void }) {
+  // Reuse MediaGallery lightbox by rendering it and auto-opening via a key hack is overkill.
+  // Simpler: render a dedicated MediaGallery and rely on user to click again. Instead, we open directly here.
+  return <InlineLightbox media={media} initial={initial} onClose={onClose} />;
 }
 
 function Meta({ label, value }: { label: string; value: string }) {
