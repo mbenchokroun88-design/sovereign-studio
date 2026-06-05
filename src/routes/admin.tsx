@@ -466,12 +466,6 @@ function MediaRow({
             </>
           )}
         </div>
-        <input
-          value={item.caption || ""}
-          onChange={(e) => onChange({ caption: e.target.value })}
-          placeholder="Légende (optionnelle)"
-          className="form-input"
-        />
       </div>
         <div className="grid md:grid-cols-2 gap-2 mt-2">
           <input
