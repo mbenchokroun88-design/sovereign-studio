@@ -11,6 +11,7 @@ import {
 import type { MediaItem } from "@/lib/store/projects";
 import { toVideoEmbed, toDriveImage, isDriveUrl, SLOT_LABELS } from "@/lib/store/projects";
 import { Flipbook } from "./Flipbook";
+import { Mockup3D } from "./Mockup3D";
 
 interface MediaGalleryProps {
   media: MediaItem[];
@@ -119,6 +120,10 @@ function KindIcon({ kind }: { kind: MediaItem["kind"] }) {
 }
 
 function MediaThumb({ item }: { item: MediaItem }) {
+  if (item.mockup && item.mockupTemplate && item.kind === "image") {
+    const views = [item.url, ...(item.mockupViews || [])].filter(Boolean);
+    return <Mockup3D template={item.mockupTemplate} views={views} auto size="thumb" />;
+  }
   if (item.kind === "image") {
     const src = isDriveUrl(item.url) ? toDriveImage(item.url) : item.url;
     return (
@@ -147,6 +152,14 @@ function MediaThumb({ item }: { item: MediaItem }) {
 }
 
 function MediaFull({ item }: { item: MediaItem }) {
+  if (item.mockup && item.mockupTemplate && item.kind === "image") {
+    const views = [item.url, ...(item.mockupViews || [])].filter(Boolean);
+    return (
+      <div className="w-full h-full max-w-6xl">
+        <Mockup3D template={item.mockupTemplate} views={views} caption={item.caption} size="full" />
+      </div>
+    );
+  }
   if (item.kind === "image") {
     const src = isDriveUrl(item.url) ? toDriveImage(item.url) : item.url;
     return (

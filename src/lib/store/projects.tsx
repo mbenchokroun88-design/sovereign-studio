@@ -98,7 +98,29 @@ export interface MediaItem {
   url: string;
   caption?: string;
   label?: string; // libellé personnalisé pour la section
+  mockup?: boolean;
+  mockupTemplate?: MockupTemplate;
+  mockupViews?: string[]; // URLs additionnelles pour les autres angles
 }
+
+export type MockupTemplate =
+  | "magazine"
+  | "rollup"
+  | "poster"
+  | "badge"
+  | "flyer"
+  | "banner"
+  | "card";
+
+export const MOCKUP_LABELS: Record<MockupTemplate, string> = {
+  magazine: "Magazine A4 ouvert",
+  rollup: "Roll-up",
+  poster: "Affiche",
+  badge: "Badge",
+  flyer: "Flyer",
+  banner: "Banner",
+  card: "Carte",
+};
 
 export interface Project {
   id: string;
