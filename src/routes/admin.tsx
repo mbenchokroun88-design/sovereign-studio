@@ -17,6 +17,7 @@ import {
   type ProjectCategory,
 } from "@/lib/store/projects";
 import { MOCKUP_LABELS, type MockupTemplate } from "@/lib/store/projects";
+import { Mockup3D } from "@/components/site/Mockup3D";
 import { useHeroSlides, type HeroSlide } from "@/lib/store/hero";
 import { useClients, type ClientRow } from "@/lib/store/clients";
 
@@ -508,9 +509,7 @@ function MediaRow({
             className="form-input"
           />
         </div>
-        {item.kind === "image" && (
-          <MockupBlock item={item} onChange={onChange} />
-        )}
+        <MockupBlock item={item} onChange={onChange} />
     </div>
   );
 }
