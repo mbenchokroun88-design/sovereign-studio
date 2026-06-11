@@ -16,6 +16,7 @@ import {
   type Project,
   type ProjectCategory,
 } from "@/lib/store/projects";
+import { MOCKUP_LABELS, type MockupTemplate } from "@/lib/store/projects";
 import { useHeroSlides, type HeroSlide } from "@/lib/store/hero";
 import { useClients, type ClientRow } from "@/lib/store/clients";
 
@@ -507,6 +508,60 @@ function MediaRow({
             className="form-input"
           />
         </div>
+        {item.kind === "image" && (
+          <MockupBlock item={item} onChange={onChange} />
+        )}
+    </div>
+  );
+}
+
+function MockupBlock({ item, onChange }: { item: MediaItem; onChange: (p: Partial<MediaItem>) => void }) {
+  const enabled = !!item.mockup;
+  const tpl = (item.mockupTemplate || "magazine") as MockupTemplate;
+  const views = item.mockupViews || [];
+  function setView(i: number, v: string) {
+    const next = [...views];
+    next[i] = v;
+    onChange({ mockupViews: next.filter((x, idx) => idx <= i || x) });
+  }
+  return (
+    <div className="mt-3 border-t border-dashed border-border pt-3">
+      <label className="inline-flex items-center gap-2 text-xs">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => onChange({ mockup: e.target.checked, mockupTemplate: e.target.checked ? tpl : item.mockupTemplate })}
+        />
+        <span className="font-semibold uppercase tracking-widest text-[10px] text-brand">Afficher en mockup 3D animé</span>
+      </label>
+      {enabled && (
+        <div className="mt-2 space-y-2 pl-5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-widest text-ink-muted">Template :</span>
+            <select
+              value={tpl}
+              onChange={(e) => onChange({ mockupTemplate: e.target.value as MockupTemplate })}
+              className="text-[11px] border border-border px-2 py-1 bg-canvas"
+            >
+              {(Object.keys(MOCKUP_LABELS) as MockupTemplate[]).map((k) => (
+                <option key={k} value={k}>{MOCKUP_LABELS[k]}</option>
+              ))}
+            </select>
+          </div>
+          <p className="text-[10px] text-ink-muted">
+            Vues additionnelles (URLs d'images, ex. dos, double page, détail). Laissez vide pour répéter l'image principale.
+          </p>
+          {[0, 1, 2].map((i) => (
+            <input
+              key={i}
+              value={views[i] || ""}
+              onChange={(e) => setView(i, e.target.value)}
+              placeholder={`Vue ${i + 2} — URL image (optionnel)`}
+              className="form-input"
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
