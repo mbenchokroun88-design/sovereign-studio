@@ -207,6 +207,15 @@ function Admin() {
           }}
         />
       )}
+
+      {smartImporting && (
+        <SmartImportModal
+          onClose={() => setSmartImporting(false)}
+          onCreated={async (draft) => {
+            await add(draft);
+          }}
+        />
+      )}
     </SiteLayout>
   );
 }
