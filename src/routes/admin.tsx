@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Copy, Pencil, Plus, Trash2, X, ExternalLink, Upload, Loader2 } from "lucide-react";
+import { Copy, Pencil, Plus, Trash2, X, ExternalLink, Upload, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ import { MOCKUP_LABELS, type MockupTemplate } from "@/lib/store/projects";
 import { Mockup3D } from "@/components/site/Mockup3D";
 import { useHeroSlides, type HeroSlide } from "@/lib/store/hero";
 import { useClients, type ClientRow } from "@/lib/store/clients";
+import { SmartImportModal } from "@/components/site/SmartImportModal";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -54,6 +55,7 @@ function Admin() {
   const { projects, isLoading, add, update, remove, duplicate } = useProjects();
   const [editing, setEditing] = useState<Project | null>(null);
   const [creating, setCreating] = useState(false);
+  const [smartImporting, setSmartImporting] = useState(false);
   const [tab, setTab] = useState<"projects" | "hero" | "clients">("projects");
 
   return (
@@ -68,12 +70,20 @@ function Admin() {
             </p>
           </div>
           {tab === "projects" && (
-            <button
-              onClick={() => setCreating(true)}
-              className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
-            >
-              <Plus size={14} /> Nouveau projet
-            </button>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setSmartImporting(true)}
+                className="inline-flex items-center gap-2 bg-gold text-brand px-4 py-2 text-xs uppercase tracking-widest font-semibold hover:bg-brand hover:text-brand-foreground"
+              >
+                <Sparkles size={14} /> Import IA
+              </button>
+              <button
+                onClick={() => setCreating(true)}
+                className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
+              >
+                <Plus size={14} /> Nouveau projet
+              </button>
+            </div>
           )}
         </div>
         <div className="mt-6 flex gap-1 border-b-0">
@@ -194,6 +204,15 @@ function Admin() {
             } catch (e: any) {
               toast.error(e?.message || "Erreur");
             }
+          }}
+        />
+      )}
+
+      {smartImporting && (
+        <SmartImportModal
+          onClose={() => setSmartImporting(false)}
+          onCreated={async (draft) => {
+            await add(draft);
           }}
         />
       )}
