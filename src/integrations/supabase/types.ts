@@ -91,6 +91,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          blocks: Json
           category: string
           client: string
           cover_url: string
@@ -108,6 +109,7 @@ export type Database = {
           year: string
         }
         Insert: {
+          blocks?: Json
           category?: string
           client?: string
           cover_url?: string
@@ -125,6 +127,7 @@ export type Database = {
           year?: string
         }
         Update: {
+          blocks?: Json
           category?: string
           client?: string
           cover_url?: string
