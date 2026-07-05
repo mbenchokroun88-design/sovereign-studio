@@ -86,10 +86,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Studio de design institutionnel à Rabat. Identités visuelles, rapports, événements, 3D et plateformes numériques pour la finance, l'énergie et le secteur public.",
       },
       { name: "author", content: "Mohamed Benchokroun" },
-      { property: "og:title", content: "Mohamed Benchokroun — Visual Architect & Designer" },
-      { property: "og:description", content: "Design institutionnel pour clients européens et américains." },
+      { property: "og:title", content: "Mohamed Benchokroun — Visual Architect & Designer · Rabat" },
+      { property: "og:description", content: "Studio de design institutionnel à Rabat. Identités, rapports, événements, 3D et plateformes numériques pour clients européens, américains et institutionnels marocains." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Mohamed Benchokroun — Visual Architect & Designer · Rabat" },
+      { name: "description", content: "Studio de design institutionnel à Rabat. Identités, rapports, événements, 3D et plateformes numériques pour clients européens, américains et institutionnels marocains." },
+      { name: "twitter:description", content: "Studio de design institutionnel à Rabat. Identités, rapports, événements, 3D et plateformes numériques pour clients européens, américains et institutionnels marocains." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f1699858-0994-4bee-a53a-a727a8d90255/id-preview-4ae78180--00a0d25a-40c8-4486-98c6-8e6baccf7f7b.lovable.app-1783260173686.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f1699858-0994-4bee-a53a-a727a8d90255/id-preview-4ae78180--00a0d25a-40c8-4486-98c6-8e6baccf7f7b.lovable.app-1783260173686.png" },
     ],
     links: [
       {
