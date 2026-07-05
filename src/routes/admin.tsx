@@ -15,12 +15,14 @@ import {
   type MediaSlot,
   type Project,
   type ProjectCategory,
+  type LayoutBlock,
 } from "@/lib/store/projects";
 import { MOCKUP_LABELS, type MockupTemplate } from "@/lib/store/projects";
 import { Mockup3D } from "@/components/site/Mockup3D";
 import { useHeroSlides, type HeroSlide } from "@/lib/store/hero";
 import { useClients, type ClientRow } from "@/lib/store/clients";
 import { SmartImportModal } from "@/components/site/SmartImportModal";
+import { BlockBuilder } from "@/components/site/BlockBuilder";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -48,6 +50,7 @@ function emptyDraft(): Draft {
     featured: false,
     tags: [],
     media: [],
+    blocks: [],
   };
 }
 
@@ -341,11 +344,25 @@ function ProjectEditor({
             />
           </Field>
 
+          {/* PAGE BUILDER */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="eyebrow">Composition de la page ({(draft.blocks || []).length} bloc{(draft.blocks || []).length > 1 ? "s" : ""})</p>
+            </div>
+            <BlockBuilder
+              blocks={draft.blocks || []}
+              onChange={(next: LayoutBlock[]) => patch("blocks", next)}
+            />
+          </div>
+
           {/* MEDIA SLOTS */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <p className="eyebrow">Médias — par catégorie ({draft.media.length})</p>
+              <p className="eyebrow">Médias par catégorie — fallback ({draft.media.length})</p>
             </div>
+            <p className="text-[10px] text-ink-muted mb-3">
+              Utilisés uniquement si vous n'avez pas composé de blocs ci-dessus.
+            </p>
 
             <div className="bg-white border border-border p-3 mb-4">
               <p className="text-[10px] uppercase tracking-widest text-ink-muted mb-2">Ajouter un élément</p>
