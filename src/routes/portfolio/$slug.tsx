@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { X, ChevronLeft as CL, ChevronRight as CR } from "lucide-react";
 import { toVideoEmbed } from "@/lib/store/projects";
 import { Flipbook } from "@/components/site/Flipbook";
+import { ProjectBlocks } from "@/components/site/ProjectBlocks";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -41,6 +42,8 @@ function ProjectDetail() {
   }
 
   const related = projects.filter((p) => p.id !== project.id && p.category === project.category).slice(0, 3);
+
+  const hasBlocks = (project.blocks?.length ?? 0) > 0;
 
   // Group media by slot, preserving SLOT_ORDER
   const grouped = SLOT_ORDER
@@ -100,8 +103,15 @@ function ProjectDetail() {
           </div>
         </section>
 
-        {/* MEDIA — GROUPED BY SLOT */}
-        {grouped.length > 0 && (
+        {/* PAGE BUILDER — long scroll composed in admin */}
+        {hasBlocks && (
+          <section className="border-y border-border">
+            <ProjectBlocks blocks={project.blocks!} />
+          </section>
+        )}
+
+        {/* MEDIA — GROUPED BY SLOT (fallback si pas de blocs) */}
+        {!hasBlocks && grouped.length > 0 && (
           <section className="bg-white border-y border-border">
             <div className="container-x py-16 md:py-20 space-y-14">
               {grouped.map(({ slot, items }) => (

@@ -134,8 +134,43 @@ export interface Project {
   cover: string;
   featured?: boolean;
   media: MediaItem[];
+  blocks?: LayoutBlock[];
   tags?: string[];
   position?: number;
+}
+
+// ============ PAGE BUILDER BLOCKS ============
+export type LayoutBlock =
+  | {
+      id: string;
+      type: "image";
+      url: string;
+      width: "full" | "wide" | "centered";
+      caption?: string;
+      mockup?: MockupTemplate | "none";
+      mockupViews?: string[];
+    }
+  | {
+      id: string;
+      type: "gallery";
+      urls: string[];
+      columns: 2 | 3;
+      caption?: string;
+    }
+  | {
+      id: string;
+      type: "text";
+      heading?: string;
+      body: string;
+      align?: "left" | "center";
+      eyebrow?: string;
+    }
+  | { id: string; type: "video"; url: string; caption?: string }
+  | { id: string; type: "pdf"; url: string; caption?: string }
+  | { id: string; type: "spacer"; size: "sm" | "md" | "lg" };
+
+export function newBlockId() {
+  return "b_" + Math.random().toString(36).slice(2, 10);
 }
 
 function slugify(s: string) {
@@ -161,6 +196,7 @@ function mapRow(r: any): Project {
     cover: r.cover_url || "",
     featured: !!r.featured,
     media: Array.isArray(r.media) ? (r.media as MediaItem[]) : [],
+    blocks: Array.isArray(r.blocks) ? (r.blocks as LayoutBlock[]) : [],
     tags: Array.isArray(r.tags) ? r.tags : [],
     position: r.position ?? 0,
   };
@@ -179,6 +215,7 @@ function toRow(p: Partial<Project>) {
   if ("featured" in p) o.featured = !!p.featured;
   if ("tags" in p) o.tags = p.tags ?? [];
   if ("media" in p) o.media = p.media ?? [];
+  if ("blocks" in p) o.blocks = p.blocks ?? [];
   if ("position" in p && p.position !== undefined) o.position = p.position;
   return o;
 }
