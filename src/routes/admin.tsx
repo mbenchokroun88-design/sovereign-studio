@@ -355,50 +355,6 @@ function ProjectEditor({
             />
           </div>
 
-          {/* MEDIA SLOTS */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <p className="eyebrow">Médias par catégorie — fallback ({draft.media.length})</p>
-            </div>
-            <p className="text-[10px] text-ink-muted mb-3">
-              Utilisés uniquement si vous n'avez pas composé de blocs ci-dessus.
-            </p>
-
-            <div className="bg-white border border-border p-3 mb-4">
-              <p className="text-[10px] uppercase tracking-widest text-ink-muted mb-2">Ajouter un élément</p>
-              <div className="flex flex-wrap gap-1.5">
-                {SLOT_ORDER.map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => addMediaSlot(slot)}
-                    className="text-[11px] border border-border px-2.5 py-1 hover:border-gold hover:text-brand text-ink-muted"
-                  >
-                    + {SLOT_LABELS[slot]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {draft.media.length === 0 && (
-                <p className="text-xs text-ink-muted py-6 text-center bg-muted">
-                  Aucun média. Choisissez ci-dessus la nature de l'élément à ajouter.
-                </p>
-              )}
-              {draft.media.map((m, i) => (
-                <MediaRow
-                  key={i}
-                  item={m}
-                  onChange={(p) => updateMedia(i, p)}
-                  onRemove={() => removeMedia(i)}
-                  onMoveUp={() => moveMedia(i, -1)}
-                  onMoveDown={() => moveMedia(i, 1)}
-                />
-              ))}
-            </div>
-          </div>
-
           <div className="flex justify-end gap-3 sticky bottom-0 bg-canvas py-4 -mx-6 px-6 border-t border-border">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-border hover:border-gold">
               Annuler
