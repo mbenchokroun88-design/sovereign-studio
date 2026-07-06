@@ -25,6 +25,7 @@ import {
   MoveVertical,
   Upload,
   Loader2,
+  Columns,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +49,22 @@ const BLOCK_MENU: { type: BlockType; label: string; icon: any; make: () => Layou
     type: "gallery",
     label: "Galerie",
     icon: Rows3,
-    make: () => ({ id: newBlockId(), type: "gallery", urls: ["", ""], columns: 2, caption: "" }),
+    make: () => ({ id: newBlockId(), type: "gallery", urls: ["", ""], columns: 2, caption: "", variant: "grid" }),
+  },
+  {
+    type: "text_image",
+    label: "Texte + Image",
+    icon: Columns,
+    make: () => ({
+      id: newBlockId(),
+      type: "text_image",
+      url: "",
+      heading: "",
+      body: "",
+      position: "left",
+      textSize: "sm",
+      width: "wide",
+    }),
   },
   {
     type: "text",
@@ -227,6 +243,8 @@ function BlockEditor({
       return <ImageEditor block={block} onChange={onChange as any} />;
     case "gallery":
       return <GalleryEditor block={block} onChange={onChange as any} />;
+    case "text_image":
+      return <TextImageEditor block={block} onChange={onChange as any} />;
     case "text":
       return <TextEditor block={block} onChange={onChange as any} />;
     case "video":
@@ -350,6 +368,23 @@ function GalleryEditor({
   }
   return (
     <div className="space-y-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] uppercase tracking-widest text-ink-muted">Rendu :</span>
+        {(["grid", "cinematic"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange({ variant: v })}
+            className={`text-[11px] px-3 py-1 border ${
+              (block.variant || "grid") === v
+                ? "bg-brand text-brand-foreground border-brand"
+                : "border-border text-ink-muted hover:border-gold"
+            }`}
+          >
+            {v === "grid" ? "Grille" : "Cinématique (flou progressif)"}
+          </button>
+        ))}
+      </div>
       <div className="flex items-center gap-2">
         <span className="text-[10px] uppercase tracking-widest text-ink-muted">Colonnes :</span>
         {([2, 3] as const).map((c) => (
