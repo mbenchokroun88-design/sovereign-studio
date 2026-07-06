@@ -590,3 +590,123 @@ function PdfEditor({
     </div>
   );
 }
+
+function TextImageEditor({
+  block,
+  onChange,
+}: {
+  block: Extract<LayoutBlock, { type: "text_image" }>;
+  onChange: (p: Partial<Extract<LayoutBlock, { type: "text_image" }>>) => void;
+}) {
+  const positions: { v: "left" | "right" | "top" | "bottom" | "overlay"; label: string }[] = [
+    { v: "left", label: "Image ← Texte" },
+    { v: "right", label: "Texte → Image" },
+    { v: "top", label: "Image / Texte" },
+    { v: "bottom", label: "Texte / Image" },
+    { v: "overlay", label: "Texte sur image" },
+  ];
+  const overlayAligns: { v: NonNullable<Extract<LayoutBlock, { type: "text_image" }>["overlayAlign"]>; label: string }[] = [
+    { v: "tl", label: "↖" }, { v: "tc", label: "↑" }, { v: "tr", label: "↗" },
+    { v: "cl", label: "←" }, { v: "cc", label: "•" }, { v: "cr", label: "→" },
+    { v: "bl", label: "↙" }, { v: "bc", label: "↓" }, { v: "br", label: "↘" },
+  ];
+  return (
+    <div className="space-y-2">
+      <input
+        value={block.url}
+        onChange={(e) => onChange({ url: e.target.value })}
+        placeholder="URL de l'image (ou lien Drive)"
+        className="form-input"
+      />
+      <input
+        value={block.eyebrow || ""}
+        onChange={(e) => onChange({ eyebrow: e.target.value })}
+        placeholder="Sur-titre (optionnel)"
+        className="form-input"
+      />
+      <input
+        value={block.heading || ""}
+        onChange={(e) => onChange({ heading: e.target.value })}
+        placeholder="Titre"
+        className="form-input"
+      />
+      <textarea
+        value={block.body}
+        onChange={(e) => onChange({ body: e.target.value })}
+        rows={4}
+        placeholder="Descriptif — sauts de ligne préservés"
+        className="form-input resize-y"
+      />
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] uppercase tracking-widest text-ink-muted">Disposition :</span>
+        {positions.map((p) => (
+          <button
+            key={p.v}
+            type="button"
+            onClick={() => onChange({ position: p.v })}
+            className={`text-[11px] px-3 py-1 border ${
+              block.position === p.v
+                ? "bg-brand text-brand-foreground border-brand"
+                : "border-border text-ink-muted hover:border-gold"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+      {block.position === "overlay" && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-widest text-ink-muted">Position du texte :</span>
+          <div className="grid grid-cols-3 gap-1">
+            {overlayAligns.map((a) => (
+              <button
+                key={a.v}
+                type="button"
+                onClick={() => onChange({ overlayAlign: a.v })}
+                className={`text-[11px] w-8 h-8 border ${
+                  (block.overlayAlign || "bl") === a.v
+                    ? "bg-brand text-brand-foreground border-brand"
+                    : "border-border text-ink-muted hover:border-gold"
+                }`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] uppercase tracking-widest text-ink-muted">Taille du texte :</span>
+        {(["sm", "md", "lg"] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => onChange({ textSize: s })}
+            className={`text-[11px] px-3 py-1 border ${
+              (block.textSize || "sm") === s
+                ? "bg-brand text-brand-foreground border-brand"
+                : "border-border text-ink-muted hover:border-gold"
+            }`}
+          >
+            {s === "sm" ? "Petit" : s === "md" ? "Moyen" : "Grand"}
+          </button>
+        ))}
+        <span className="text-[10px] uppercase tracking-widest text-ink-muted ml-2">Largeur :</span>
+        {(["wide", "full"] as const).map((w) => (
+          <button
+            key={w}
+            type="button"
+            onClick={() => onChange({ width: w })}
+            className={`text-[11px] px-3 py-1 border ${
+              (block.width || "wide") === w
+                ? "bg-brand text-brand-foreground border-brand"
+                : "border-border text-ink-muted hover:border-gold"
+            }`}
+          >
+            {w === "wide" ? "Large" : "Pleine"}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
