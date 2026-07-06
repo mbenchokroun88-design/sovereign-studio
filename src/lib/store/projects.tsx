@@ -156,6 +156,19 @@ export type LayoutBlock =
       urls: string[];
       columns: 2 | 3;
       caption?: string;
+      variant?: "grid" | "cinematic";
+    }
+  | {
+      id: string;
+      type: "text_image";
+      url: string;
+      heading?: string;
+      eyebrow?: string;
+      body: string;
+      position: "left" | "right" | "top" | "bottom" | "overlay";
+      overlayAlign?: "tl" | "tc" | "tr" | "cl" | "cc" | "cr" | "bl" | "bc" | "br";
+      textSize?: "sm" | "md" | "lg";
+      width?: "wide" | "full";
     }
   | {
       id: string;
@@ -317,9 +330,8 @@ export function toDrivePreview(url: string) {
 
 export function toDriveImage(url: string) {
   const m = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w2000`;
-  const m2 = url.match(/[?&]id=([^&]+)/);
-  if (m2) return `https://drive.google.com/thumbnail?id=${m2[1]}&sz=w2000`;
+  const id = m ? m[1] : url.match(/[?&]id=([^&]+)/)?.[1];
+  if (id) return `https://lh3.googleusercontent.com/d/${id}=w2400`;
   return url;
 }
 
