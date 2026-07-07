@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { CATEGORY_LABELS, isDriveUrl, toDriveImage, useProjects } from "@/lib/store/projects";
-import { ProjectBlocks } from "@/components/site/ProjectBlocks";
+import { ProjectViews } from "@/components/site/ProjectViews";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -54,16 +54,16 @@ function ProjectDetail() {
               <ArrowLeft size={14} /> Retour à l'index
             </Link>
             <p className="eyebrow text-gold-soft mb-4">{CATEGORY_LABELS[project.category]}</p>
-            <h1 className="font-serif text-5xl md:text-7xl leading-[0.95] tracking-tight text-balance max-w-4xl">
+            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl leading-[0.95] tracking-tight text-balance max-w-4xl">
               {project.title}
             </h1>
-            <p className="mt-8 text-lg text-canvas/80 max-w-2xl">{project.summary}</p>
+            <p className="mt-6 md:mt-8 text-base md:text-lg text-canvas/80 max-w-2xl">{project.summary}</p>
           </div>
         </header>
 
         {/* META */}
         <section className="border-b border-border bg-white">
-          <div className="container-x py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="container-x py-6 md:py-8 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             <Meta label="Client" value={project.client} />
             <Meta label="Année" value={project.year} />
             <Meta label="Catégorie" value={CATEGORY_LABELS[project.category]} />
@@ -95,7 +95,7 @@ function ProjectDetail() {
         {/* PAGE BUILDER — long scroll composed in admin */}
         {hasBlocks && (
           <section className="border-y border-border">
-            <ProjectBlocks blocks={project.blocks!} />
+            <ProjectViews blocks={project.blocks!} />
           </section>
         )}
 

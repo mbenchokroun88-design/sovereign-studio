@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Play, BookOpen } from "lucide-react";
 import type { MediaItem } from "@/lib/store/projects";
 import { isDriveUrl, toDriveImage } from "@/lib/store/projects";
@@ -16,6 +16,7 @@ function thumbFor(m: MediaItem): string | null {
 export function CinematicCarousel({ media, onOpen }: Props) {
   const [active, setActive] = useState(0);
   const n = media.length;
+  const touchX = useRef<number | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -36,15 +37,26 @@ export function CinematicCarousel({ media, onOpen }: Props) {
   });
 
   return (
-    <div className="relative w-full h-[440px] md:h-[560px] select-none overflow-hidden bg-gradient-to-b from-brand/[0.02] to-brand/[0.06] rounded-sm">
+    <div
+      className="relative w-full h-[340px] sm:h-[440px] md:h-[560px] select-none overflow-hidden bg-gradient-to-b from-brand/[0.02] to-brand/[0.06] rounded-sm"
+      onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => {
+        if (touchX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        if (Math.abs(dx) > 40) {
+          setActive((i) => (dx < 0 ? (i + 1) % n : (i - 1 + n) % n));
+        }
+        touchX.current = null;
+      }}
+    >
       {/* Stage */}
       <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1800px" }}>
         {slots.map(({ item, offset, originalIndex }) => {
           const abs = Math.abs(offset);
           if (abs > 4) return null; // hide far items
           // Cinematic transform
-          const translateX = offset * 220; // px sideways
-          const translateZ = -abs * 220; // deeper as further
+          const translateX = offset * (typeof window !== "undefined" && window.innerWidth < 640 ? 140 : 220);
+          const translateZ = -abs * 220;
           const rotateY = offset * -18;
           const scale = abs === 0 ? 1 : abs === 1 ? 0.78 : abs === 2 ? 0.6 : 0.45;
           const blur = abs === 0 ? 0 : abs === 1 ? 2 : abs === 2 ? 6 : 10;
@@ -68,7 +80,7 @@ export function CinematicCarousel({ media, onOpen }: Props) {
               aria-label={item.label || item.caption || `Élément ${originalIndex + 1}`}
             >
               <div
-                className="relative w-[300px] md:w-[420px] aspect-[4/5] bg-brand overflow-hidden shadow-2xl"
+                className="relative w-[200px] sm:w-[300px] md:w-[420px] aspect-[4/5] bg-brand overflow-hidden shadow-2xl"
                 style={{
                   boxShadow: isCenter
                     ? "0 30px 80px -20px rgba(0,0,0,0.55), 0 0 0 1px rgba(212,175,55,0.25)"
