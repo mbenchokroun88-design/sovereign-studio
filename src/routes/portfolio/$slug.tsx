@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { CATEGORY_LABELS, isDriveUrl, toDriveImage, useProjects } from "@/lib/store/projects";
-import { ProjectBlocks } from "@/components/site/ProjectBlocks";
+import { ProjectViews } from "@/components/site/ProjectViews";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -95,7 +95,7 @@ function ProjectDetail() {
         {/* PAGE BUILDER — long scroll composed in admin */}
         {hasBlocks && (
           <section className="border-y border-border">
-            <ProjectBlocks blocks={project.blocks!} />
+            <ProjectViews blocks={project.blocks!} />
           </section>
         )}
 
