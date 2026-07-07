@@ -331,7 +331,7 @@ export function toDrivePreview(url: string) {
 export function toDriveImage(url: string) {
   const m = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   const id = m ? m[1] : url.match(/[?&]id=([^&]+)/)?.[1];
-  if (id) return `https://lh3.googleusercontent.com/d/${id}=w2400`;
+  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w2400`;
   return url;
 }
 
