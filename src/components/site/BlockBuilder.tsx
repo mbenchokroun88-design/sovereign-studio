@@ -422,6 +422,12 @@ function GalleryEditor({
               placeholder={`Image ${i + 1} — URL`}
               className="form-input flex-1"
             />
+            <MediaUploadButton
+              onUploaded={(url) => setUrl(i, url)}
+              folder="galleries"
+              accept="image/*"
+              label=""
+            />
             {block.urls.length > 1 && (
               <button
                 type="button"
