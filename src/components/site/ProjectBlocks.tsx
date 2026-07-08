@@ -228,6 +228,10 @@ function VideoBlock({ url, caption }: { url: string; caption?: string }) {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+  const isNative = /\.(mp4|webm|mov|m4v)($|\?)/i.test(url) || /supabase\.co\/storage\//.test(url);
+  if (isNative) {
+    return <NativeVideoBlock url={url} caption={caption} />;
+  }
   const base = toVideoEmbed(url);
   const sep = base.includes("?") ? "&" : "?";
   const src = `${base}${sep}autoplay=${play ? 1 : 0}&mute=1&muted=1&playsinline=1&loop=1`;
@@ -241,6 +245,55 @@ function VideoBlock({ url, caption }: { url: string; caption?: string }) {
             allow="autoplay; fullscreen"
             allowFullScreen
             title={caption || "video"}
+          />
+        </div>
+        {caption && (
+          <p className="mt-3 text-xs text-ink-muted uppercase tracking-widest text-center">
+            {caption}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function NativeVideoBlock({ url, caption }: { url: string; caption?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting && e.intersectionRatio > 0.4) {
+            el.play().catch(() => {});
+          } else {
+            el.pause();
+          }
+        });
+      },
+      { threshold: [0, 0.4, 0.8] },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <section className="py-8 md:py-14">
+      <div className="max-w-6xl mx-auto px-4 md:px-8">
+        <div
+          className="relative bg-black overflow-hidden group"
+          onMouseEnter={() => videoRef.current?.play().catch(() => {})}
+          onMouseLeave={() => videoRef.current?.pause()}
+        >
+          <video
+            ref={videoRef}
+            src={url}
+            className="w-full h-auto block"
+            muted
+            loop
+            playsInline
+            preload="auto"
+            controls
           />
         </div>
         {caption && (
