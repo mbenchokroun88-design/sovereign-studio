@@ -622,12 +622,15 @@ function TextImageEditor({
   ];
   return (
     <div className="space-y-2">
-      <input
-        value={block.url}
-        onChange={(e) => onChange({ url: e.target.value })}
-        placeholder="URL de l'image (ou lien Drive)"
-        className="form-input"
-      />
+      <div className="flex gap-2">
+        <input
+          value={block.url}
+          onChange={(e) => onChange({ url: e.target.value })}
+          placeholder="URL de l'image (ou lien Drive)"
+          className="form-input flex-1"
+        />
+        <MediaUploadButton onUploaded={(url) => onChange({ url })} folder="blocks" accept="image/*" />
+      </div>
       <input
         value={block.eyebrow || ""}
         onChange={(e) => onChange({ eyebrow: e.target.value })}
