@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { MediaUploadButton } from "@/components/site/MediaUploadButton";
 import {
   MOCKUP_LABELS,
   newBlockId,
@@ -283,12 +284,15 @@ function ImageEditor({
 }) {
   return (
     <div className="space-y-2">
-      <input
-        value={block.url}
-        onChange={(e) => onChange({ url: e.target.value })}
-        placeholder="URL de l'image (ou lien Drive)"
-        className="form-input"
-      />
+      <div className="flex gap-2">
+        <input
+          value={block.url}
+          onChange={(e) => onChange({ url: e.target.value })}
+          placeholder="URL de l'image (ou lien Drive)"
+          className="form-input flex-1"
+        />
+        <MediaUploadButton onUploaded={(url) => onChange({ url })} folder="blocks" accept="image/*" />
+      </div>
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[10px] uppercase tracking-widest text-ink-muted">Largeur :</span>
         {(["full", "wide", "centered"] as const).map((w) => (

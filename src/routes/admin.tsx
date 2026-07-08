@@ -7,6 +7,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadOptimizedMedia } from "@/lib/media/client-optimize";
 import { migrateProjectMedia, migrateHeroAndClients } from "@/lib/api/media-migration.functions";
+import { MediaUploadButton } from "@/components/site/MediaUploadButton";
 import {
   CATEGORY_LABELS,
   DEFAULT_KIND_FOR_SLOT,
@@ -384,11 +385,14 @@ function ProjectEditor({
             </Field>
           </Row>
 
-          <Field label="Image de couverture (URL ou lien Drive)" help="Drive → conversion auto en image">
-            <input value={draft.cover} onChange={(e) => patch("cover", e.target.value)} className="form-input" placeholder="https://..." />
+          <Field label="Image de couverture" help="Upload direct : converti en WebP allégé. URL Drive : à migrer depuis la liste.">
+            <div className="flex gap-2">
+              <input value={draft.cover} onChange={(e) => patch("cover", e.target.value)} className="form-input flex-1" placeholder="https://..." />
+              <MediaUploadButton onUploaded={(url) => patch("cover", url)} folder="covers" accept="image/*" />
+            </div>
             {draft.cover && (
               <div className="mt-3 aspect-[16/9] bg-muted overflow-hidden">
-                <img src={draft.cover} alt="" className="w-full h-full object-cover" />
+                <img src={draft.cover} alt="" className="w-full h-full object-contain" />
               </div>
             )}
           </Field>
