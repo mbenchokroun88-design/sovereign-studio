@@ -57,6 +57,12 @@ export const migrateProjectMedia = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(`Lecture projet : ${error.message}`);
     if (!row) throw new Error("Projet introuvable");
+    const project = row as {
+      id: string;
+      cover_url: string | null;
+      media: unknown;
+      blocks: unknown;
+    };
 
     const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
     const cache = new Map<string, string>();
@@ -70,7 +76,7 @@ export const migrateProjectMedia = createServerFn({ method: "POST" })
       if (cache.has(url)) return cache.get(url)!;
       try {
         const { bytes, contentType, ext } = await fetchDriveBytes(url);
-        const path = `migrated/${row.id}/${crypto.randomUUID()}.${ext}`;
+        const path = `migrated/${project.id}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabaseAdmin.storage
           .from("project-media")
           .upload(path, bytes, { contentType, cacheControl: "31536000", upsert: false });
@@ -97,10 +103,10 @@ export const migrateProjectMedia = createServerFn({ method: "POST" })
       if (next !== row.cover_url) changes.cover_url = next;
     }
 
-    if (Array.isArray(row.media)) {
+    if (Array.isArray(project.media)) {
       const nextMedia = [];
       let mediaChanged = false;
-      for (const m of row.media as Record<string, unknown>[]) {
+      for (const m of project.media as Record<string, unknown>[]) {
         const nm: Record<string, unknown> = { ...m };
         if (typeof m.url === "string") {
           const nu = await migrateOne(m.url);
@@ -121,10 +127,10 @@ export const migrateProjectMedia = createServerFn({ method: "POST" })
       if (mediaChanged) changes.media = nextMedia;
     }
 
-    if (Array.isArray(row.blocks)) {
+    if (Array.isArray(project.blocks)) {
       const nextBlocks = [];
       let blocksChanged = false;
-      for (const b of row.blocks as Record<string, unknown>[]) {
+      for (const b of project.blocks as Record<string, unknown>[]) {
         const nb: Record<string, unknown> = { ...b };
         if (typeof b.url === "string" && b.url) {
           const nu = await migrateOne(b.url);
@@ -157,12 +163,12 @@ export const migrateProjectMedia = createServerFn({ method: "POST" })
     if (Object.keys(changes).length > 0) {
       const { error: uErr } = await supabaseAdmin
         .from("projects")
-        .update(changes)
-        .eq("id", row.id);
+        .update(changes as never)
+        .eq("id", project.id);
       if (uErr) throw new Error(`Écriture projet : ${uErr.message}`);
     }
 
-    return { projectId: row.id, migrated, failed, total };
+    return { projectId: project.id, migrated, failed, total };
   });
 
 /** Migrate cover/logo/image URLs on hero_slides and clients tables in one shot. */
