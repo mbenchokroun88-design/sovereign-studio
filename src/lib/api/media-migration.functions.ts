@@ -208,7 +208,10 @@ export const migrateHeroAndClients = createServerFn({ method: "POST" }).handler(
       if (typeof s.image_url === "string" && isMigratable(s.image_url)) {
         const nu = await migrateOne(s.image_url, "hero");
         if (nu !== s.image_url) {
-          await supabaseAdmin.from("hero_slides").update({ image_url: nu }).eq("id", s.id);
+          await supabaseAdmin
+            .from("hero_slides")
+            .update({ image_url: nu } as never)
+            .eq("id", s.id);
         }
       }
     }
@@ -218,7 +221,10 @@ export const migrateHeroAndClients = createServerFn({ method: "POST" }).handler(
       if (typeof c.logo_url === "string" && isMigratable(c.logo_url)) {
         const nu = await migrateOne(c.logo_url, "clients");
         if (nu !== c.logo_url) {
-          await supabaseAdmin.from("clients").update({ logo_url: nu }).eq("id", c.id);
+          await supabaseAdmin
+            .from("clients")
+            .update({ logo_url: nu } as never)
+            .eq("id", c.id);
         }
       }
     }
