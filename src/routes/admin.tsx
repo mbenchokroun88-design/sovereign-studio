@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Copy, Pencil, Plus, Trash2, X, ExternalLink, Upload, Loader2, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Copy, Pencil, Plus, Trash2, X, ExternalLink, Upload, Loader2, Sparkles, DownloadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadOptimizedMedia } from "@/lib/media/client-optimize";
+import { migrateProjectMedia, migrateHeroAndClients } from "@/lib/api/media-migration.functions";
 import {
   CATEGORY_LABELS,
   DEFAULT_KIND_FOR_SLOT,
@@ -60,6 +63,52 @@ function Admin() {
   const [creating, setCreating] = useState(false);
   const [smartImporting, setSmartImporting] = useState(false);
   const [tab, setTab] = useState<"projects" | "hero" | "clients">("projects");
+  const [migratingId, setMigratingId] = useState<string | null>(null);
+  const [migratingAll, setMigratingAll] = useState(false);
+  const migrateProject = useServerFn(migrateProjectMedia);
+  const migrateSite = useServerFn(migrateHeroAndClients);
+
+  async function runMigration(projectId: string) {
+    setMigratingId(projectId);
+    try {
+      const res = await migrateProject({ data: { projectId } });
+      if (res.total === 0) toast.info("Aucune URL Drive à migrer");
+      else toast.success(`${res.migrated}/${res.total} média(s) migré(s)` + (res.failed ? ` · ${res.failed} échec(s)` : ""));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Migration échouée");
+    } finally {
+      setMigratingId(null);
+    }
+  }
+
+  async function runMigrateAll() {
+    if (!confirm(`Migrer les fichiers Drive de ${projects.length} projet(s) + slides + logos ? Cela peut prendre 1-2 minutes.`)) return;
+    setMigratingAll(true);
+    let totalMigrated = 0;
+    let totalFailed = 0;
+    try {
+      for (const p of projects) {
+        try {
+          const res = await migrateProject({ data: { projectId: p.id } });
+          totalMigrated += res.migrated;
+          totalFailed += res.failed;
+        } catch (e) {
+          console.error(e);
+          totalFailed++;
+        }
+      }
+      try {
+        const site = await migrateSite({});
+        totalMigrated += site.migrated;
+        totalFailed += site.failed;
+      } catch (e) {
+        console.error(e);
+      }
+      toast.success(`Migration terminée : ${totalMigrated} fichier(s)` + (totalFailed ? ` · ${totalFailed} échec(s)` : ""));
+    } finally {
+      setMigratingAll(false);
+    }
+  }
 
   return (
     <SiteLayout>
@@ -74,6 +123,15 @@ function Admin() {
           </div>
           {tab === "projects" && (
             <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={runMigrateAll}
+                disabled={migratingAll}
+                className="inline-flex items-center gap-2 border border-brand/20 text-brand px-4 py-2 text-xs uppercase tracking-widest font-semibold hover:bg-brand hover:text-brand-foreground disabled:opacity-50"
+                title="Télécharge tous les fichiers Drive dans la base pour un affichage stable partout"
+              >
+                {migratingAll ? <Loader2 size={14} className="animate-spin" /> : <DownloadCloud size={14} />}
+                {migratingAll ? "Migration…" : "Migrer tous les médias"}
+              </button>
               <button
                 onClick={() => setSmartImporting(true)}
                 className="inline-flex items-center gap-2 bg-gold text-brand px-4 py-2 text-xs uppercase tracking-widest font-semibold hover:bg-brand hover:text-brand-foreground"
@@ -147,6 +205,14 @@ function Admin() {
                 >
                   <ExternalLink size={14} />
                 </Link>
+                <button
+                  onClick={() => runMigration(p.id)}
+                  disabled={migratingId === p.id}
+                  className="size-8 grid place-items-center border border-border hover:border-gold text-ink-muted hover:text-brand disabled:opacity-50"
+                  title="Migrer les fichiers Drive vers la base"
+                >
+                  {migratingId === p.id ? <Loader2 size={14} className="animate-spin" /> : <DownloadCloud size={14} />}
+                </button>
                 <button
                   onClick={async () => {
                     await duplicate(p.id);
