@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, Globe2, Award, Sparkles } from "lucide-react";
-import { useProjects, CATEGORY_LABELS } from "@/lib/store/projects";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import {
+  useProjects,
+  CATEGORY_LABELS,
+  isDriveUrl,
+  toDriveImage,
+  type Project,
+} from "@/lib/store/projects";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { ProjectCard } from "@/components/site/ProjectCard";
 import heroImg from "@/assets/hero.jpg";
 import { useEffect, useState } from "react";
 import { useHeroSlides } from "@/lib/store/hero";
@@ -24,14 +29,26 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const PRINCIPLES = [
+  { n: "01", t: "Rigueur institutionnelle", d: "Grilles typographiques strictes, hiérarchie éditoriale, respect des chartes de marque et des standards de gouvernance." },
+  { n: "02", t: "Design piloté par la donnée", d: "Data-visualisations, infographies et rapports d'impact conçus pour communiquer avec précision — pas pour décorer." },
+  { n: "03", t: "Exécution multi-support", d: "Print, événementiel, digital, 3D, motion : une même identité, cohérente sur chaque livrable." },
+  { n: "04", t: "Confidentialité & délais", d: "Habitudes de secteur régulé — NDA, versioning, comité de relecture, respect strict des jalons." },
+];
+
 const SERVICES = [
   { id: "01", title: "Identité Visuelle", desc: "Marques institutionnelles, chartes complètes et systèmes d'identité multilingues." },
   { id: "02", title: "Rapports & Édition", desc: "Rapports d'impact, publications, infographies et flipbooks digitaux." },
   { id: "03", title: "Événements", desc: "Couverture visuelle complète : signalétique, supports, captation et livrables." },
   { id: "04", title: "Vidéo & Motion", desc: "Documentaires, films institutionnels, motion design et étalonnage." },
   { id: "05", title: "3D & Visites Virtuelles", desc: "Maquettes architecturales, rendus photoréalistes et visites interactives." },
-  { id: "06", title: "Web & Application", desc: "Design produit, prototypage et accompagnement développement (Lovable, Webflow)." },
+  { id: "06", title: "Web & Application", desc: "Design produit, prototypage et accompagnement développement." },
 ];
+
+function coverSrc(p: Project) {
+  const url = p.cover || "";
+  return isDriveUrl(url) ? toDriveImage(url) : url;
+}
 
 // Render a headline string: text wrapped in *asterisks* is italic gold (shimmer).
 // Lines are separated by literal "\n".
@@ -57,8 +74,10 @@ function Index() {
   const { projects } = useProjects();
   const { slides } = useHeroSlides();
   const { clients } = useClients();
-  const featured = projects.filter((p) => p.featured).slice(0, 3);
-  const recent = projects.slice(0, 6);
+  const featured = projects.filter((p) => p.featured);
+  const heroCase = featured[0] ?? projects[0]; // flagship case study
+  const worksGrid = projects.filter((p) => p.id !== heroCase?.id).slice(0, 4);
+  const recent = projects.slice(0, 8);
   const activeSlides = slides.filter((s) => s.visible);
   const [slideIndex, setSlideIndex] = useState(0);
   useEffect(() => {
@@ -84,7 +103,7 @@ function Index() {
                 height={1080}
                 fetchPriority={i === 0 ? "high" : "low"}
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ease-in-out ${
-                  i === slideIndex ? "opacity-60 animate-kenburns" : "opacity-0"
+                  i === slideIndex ? "opacity-45 animate-kenburns" : "opacity-0"
                 }`}
               />
             ))
@@ -95,64 +114,71 @@ function Index() {
               width={1920}
               height={1080}
               fetchPriority="high"
-              className="w-full h-full object-cover opacity-60 animate-kenburns"
+              className="w-full h-full object-cover opacity-45 animate-kenburns"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand via-brand/90 to-brand/70" />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand via-transparent to-transparent" />
-          {/* Decorative grid */}
-          <div className="absolute inset-0 hero-grid opacity-50" />
-          {/* Gold glow */}
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-gold/20 blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-gold/10 blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-br from-brand via-brand/95 to-brand/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand via-brand/40 to-transparent" />
+          <div className="absolute inset-0 hero-grid opacity-40" />
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-gold/15 blur-3xl" />
         </div>
 
-        <div className="container-x relative pt-28 pb-24 md:pt-36 md:pb-32 lg:pt-44 lg:pb-40 min-h-[92vh] flex flex-col justify-center">
+        <div className="container-x relative pt-24 pb-20 md:pt-32 md:pb-28 lg:pt-40 lg:pb-32 min-h-[92vh] flex flex-col justify-center">
+          {/* Corner marks */}
+          <div className="absolute top-6 left-5 md:left-12 xl:left-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/50">
+            MB / STUDIO — EST. 2013
+          </div>
+          <div className="absolute top-6 right-5 md:right-12 xl:right-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/50 text-right">
+            {new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}
+          </div>
+
           {/* Top meta line */}
-          <div key={`eb-${currentSlide?.id ?? "default"}`} className="flex items-center gap-4 mb-10 animate-fade-up">
-            <span className="h-px w-12 bg-gold" />
-            <p className="eyebrow text-gold-soft m-0">{currentSlide?.eyebrow || "Rabat · Paris · Washington · 2026 Portfolio"}</p>
+          <div key={`eb-${currentSlide?.id ?? "default"}`} className="flex items-center gap-4 mb-8 md:mb-10 animate-fade-up">
+            <span className="h-px w-16 bg-gold" />
+            <p className="eyebrow text-gold-soft m-0">
+              {currentSlide?.eyebrow || "Rabat · Paris · Washington — Portfolio 2026"}
+            </p>
           </div>
 
           {/* Headline */}
           {currentSlide ? (
             <h1
               key={`t-${currentSlide.id}`}
-              className="font-serif text-[12vw] md:text-[7vw] lg:text-[6.5rem] xl:text-[7.5rem] leading-[0.92] tracking-tight text-balance animate-fade-up max-w-5xl"
+              className="font-serif text-[13vw] md:text-[8vw] lg:text-[7rem] xl:text-[8rem] leading-[0.9] tracking-[-0.02em] text-balance animate-fade-up max-w-5xl"
               style={{ animationDelay: "0.1s" }}
             >
               {renderHeadline(currentSlide.title)}
             </h1>
           ) : (
             <h1
-              className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9rem] leading-[0.88] tracking-tight text-balance animate-fade-up"
+              className="font-serif text-[13vw] md:text-[8.5vw] lg:text-[7.5rem] xl:text-[8.5rem] leading-[0.88] tracking-[-0.02em] text-balance animate-fade-up max-w-5xl"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="block">Design</span>
-              <span className="block"><span className="italic text-shimmer">institutionnel</span></span>
-              <span className="block text-canvas/85">de classe mondiale.</span>
+              <span className="block">Design pour</span>
+              <span className="block"><span className="italic text-shimmer">les institutions</span></span>
+              <span className="block text-canvas/85">qui pèsent.</span>
             </h1>
           )}
 
           {/* Sub-row */}
           <div
             key={`sr-${currentSlide?.id ?? "default"}`}
-            className="mt-12 grid md:grid-cols-[1.2fr_1fr] gap-10 md:gap-16 items-end animate-fade-up"
+            className="mt-10 md:mt-14 grid md:grid-cols-[1.1fr_1fr] gap-8 md:gap-16 items-end animate-fade-up"
             style={{ animationDelay: "0.25s" }}
           >
-            <p className="text-lg md:text-xl text-canvas/80 font-light leading-relaxed max-w-xl text-pretty">
+            <p className="text-base md:text-lg text-canvas/80 leading-relaxed max-w-xl text-pretty">
               {currentSlide?.subtitle || (
                 <>
-                  <span className="text-gold">Mohamed Benchokroun</span> — concepteur d'identités, rapports et expériences visuelles pour les institutions financières, ministères et organisations internationales.
+                  <span className="text-gold">Mohamed Benchokroun</span> — concepteur d'identités, de rapports et d'expériences visuelles pour banques de développement, ministères et organisations internationales. Un standard de rigueur éditoriale, exécuté depuis Rabat pour l'Europe, l'Afrique et l'Amérique du Nord.
                 </>
               )}
             </p>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 md:justify-end">
               {currentSlide?.cta_label ? (
                 <a
                   href={currentSlide.cta_href || "/portfolio"}
-                  className="group inline-flex items-center gap-3 bg-gold text-brand font-medium px-7 py-4 hover:bg-gold-soft transition-all hover:gap-4"
+                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
                 >
                   {currentSlide.cta_label}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -160,7 +186,7 @@ function Index() {
               ) : (
                 <Link
                   to="/portfolio"
-                  className="group inline-flex items-center gap-3 bg-gold text-brand font-medium px-7 py-4 hover:bg-gold-soft transition-all hover:gap-4"
+                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
                 >
                   Voir le portfolio
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -168,40 +194,30 @@ function Index() {
               )}
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-2 border border-canvas/30 text-canvas px-7 py-4 hover:bg-canvas hover:text-brand transition-colors backdrop-blur-sm"
+                className="inline-flex items-center gap-2 border border-canvas/30 text-canvas text-sm uppercase tracking-widest px-6 py-4 hover:bg-canvas hover:text-brand transition-colors"
               >
                 Démarrer un projet
               </Link>
             </div>
           </div>
 
-          {/* Stats / trust */}
+          {/* Stats — data-driven trust */}
           <div
-            className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 border-t border-canvas/15 pt-10 animate-fade-up"
+            className="mt-14 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 border-t border-canvas/15 pt-8 md:pt-10 animate-fade-up"
             style={{ animationDelay: "0.4s" }}
           >
             {[
-              { icon: Award, k: "120+", v: "Projets livrés" },
-              { icon: Globe2, k: "14", v: "Pays couverts" },
-              { icon: Sparkles, k: "12 ans", v: "D'expertise" },
-              { icon: ArrowUpRight, k: "EU · US · MA", v: "Clients institutionnels" },
-            ].map(({ icon: Icon, k, v }) => (
-              <div key={v} className="flex items-start gap-3">
-                <Icon size={18} className="text-gold mt-1 shrink-0" />
-                <div>
-                  <div className="font-serif text-2xl md:text-3xl text-canvas">{k}</div>
-                  <div className="text-[11px] uppercase tracking-widest text-canvas/55 mt-1">{v}</div>
-                </div>
+              { k: "120+", v: "Projets livrés", n: "01" },
+              { k: "14", v: "Pays couverts", n: "02" },
+              { k: "12", v: "Années d'expertise", n: "03" },
+              { k: "EU · US · MA", v: "Clients institutionnels", n: "04" },
+            ].map((s) => (
+              <div key={s.v} className="border-l border-canvas/15 pl-4">
+                <div className="text-[10px] font-mono text-gold mb-2">{s.n} —</div>
+                <div className="font-serif text-3xl md:text-4xl text-canvas leading-none tracking-tight">{s.k}</div>
+                <div className="text-[11px] uppercase tracking-widest text-canvas/55 mt-2">{s.v}</div>
               </div>
             ))}
-          </div>
-
-          {/* Scroll cue */}
-          <div className="hidden md:flex flex-col items-center gap-2 absolute bottom-8 left-1/2 -translate-x-1/2 text-canvas/60">
-            <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
-            <div className="w-px h-10 bg-canvas/20 relative overflow-hidden">
-              <span className="absolute top-0 left-0 w-px h-3 bg-gold animate-scroll-dot" />
-            </div>
           </div>
 
           {/* Slide dots */}
@@ -220,7 +236,11 @@ function Index() {
         </div>
 
         {/* Marquee strip */}
-        <div className="relative border-t border-canvas/15 bg-brand/60 backdrop-blur-sm overflow-hidden">
+        <div className="relative border-y border-canvas/15 bg-brand/70 backdrop-blur-sm overflow-hidden">
+          <div className="container-x flex items-center justify-between py-3 border-b border-canvas/10">
+            <span className="eyebrow text-canvas/50 m-0">Ils nous font confiance</span>
+            <span className="text-[10px] font-mono text-canvas/40">— Sélection</span>
+          </div>
           <div className="flex animate-marquee whitespace-nowrap py-4 will-change-transform">
             {[...Array(2)].map((_, dup) => (
               <div key={dup} className="flex items-center gap-12 px-6 shrink-0">
@@ -230,7 +250,7 @@ function Index() {
                       <img
                         src={c.logo_url}
                         alt={c.name}
-                        className="h-10 md:h-12 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity"
+                        className="h-9 md:h-11 w-auto object-contain opacity-55 hover:opacity-100 transition-opacity"
                         loading="lazy"
                       />
                     ) : (
@@ -245,72 +265,92 @@ function Index() {
         </div>
       </section>
 
-      {/* SELECTED WORKS */}
-      <section className="container-x py-24 md:py-32">
-        <div className="flex items-end justify-between mb-12 border-b border-brand/15 pb-4">
+      {/* PRINCIPLES — sober editorial manifesto strip */}
+      <section className="border-b border-border">
+        <div className="container-x py-16 md:py-24 grid md:grid-cols-[0.4fr_1.6fr] gap-8 md:gap-16">
           <div>
-            <p className="eyebrow mb-3">Selected Works</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-brand">Travaux récents</h2>
+            <p className="eyebrow mb-3">Méthode</p>
+            <h2 className="font-serif text-3xl md:text-4xl text-brand leading-tight">
+              Quatre principes, une signature.
+            </h2>
           </div>
-          <Link to="/portfolio" className="hidden md:flex items-center gap-2 text-sm font-medium text-brand gold-underline">
-            Tout voir <ArrowUpRight size={14} />
+          <div className="grid sm:grid-cols-2 gap-x-10 gap-y-8">
+            {PRINCIPLES.map((p) => (
+              <div key={p.n} className="border-t-2 border-brand pt-4">
+                <div className="flex items-baseline justify-between mb-2">
+                  <span className="font-mono text-xs text-gold">{p.n}</span>
+                  <span className="h-px flex-1 bg-brand/10 ml-3" />
+                </div>
+                <h3 className="font-serif text-xl md:text-2xl text-brand mb-2">{p.t}</h3>
+                <p className="text-sm text-ink-muted leading-relaxed">{p.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CASE STUDY HERO — flagship project (replaces old Publication section) */}
+      {heroCase && <CaseStudyHero project={heroCase} />}
+
+      {/* SELECTED WORKS — 2-col editorial grid */}
+      <section className="container-x py-20 md:py-28">
+        <div className="flex items-end justify-between mb-10 md:mb-14 border-b border-brand/15 pb-4">
+          <div>
+            <p className="eyebrow mb-3">Selected Works · 2024 — 2026</p>
+            <h2 className="font-serif text-4xl md:text-5xl text-brand tracking-tight">Portfolio récent</h2>
+          </div>
+          <Link to="/portfolio" className="hidden md:inline-flex items-center gap-2 text-xs uppercase tracking-widest font-medium text-brand gold-underline">
+            Index complet <ArrowUpRight size={14} />
           </Link>
         </div>
 
-        <div className="grid gap-12 md:grid-cols-3">
-          {featured.map((p) => (
-            <ProjectCard key={p.id} project={p} variant="feature" />
+        <div className="grid gap-x-10 gap-y-16 md:grid-cols-2">
+          {worksGrid.map((p, i) => (
+            <Link
+              key={p.id}
+              to="/portfolio/$slug"
+              params={{ slug: p.slug }}
+              className="group block"
+            >
+              <div className="relative aspect-[4/3] bg-muted overflow-hidden mb-5">
+                {coverSrc(p) ? (
+                  <img
+                    src={coverSrc(p)}
+                    alt={p.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-brand/10 to-brand/5" />
+                )}
+                <span className="absolute top-3 left-3 font-mono text-[10px] uppercase tracking-widest text-canvas bg-brand/70 backdrop-blur-sm px-2 py-1">
+                  {String(i + 1).padStart(2, "0")} / {CATEGORY_LABELS[p.category]}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 mb-2 text-[10px] font-mono uppercase tracking-widest text-ink-muted">
+                <span>{p.client || "—"}</span>
+                <span>{p.year}</span>
+              </div>
+              <h3 className="font-serif text-2xl md:text-3xl text-brand leading-tight group-hover:text-gold transition-colors">
+                {p.title}
+              </h3>
+              {p.summary && (
+                <p className="mt-2 text-sm text-ink-muted leading-relaxed line-clamp-2">{p.summary}</p>
+              )}
+            </Link>
           ))}
         </div>
       </section>
 
-      {/* FLIPBOOK SHOWCASE */}
-      <section className="bg-brand text-canvas">
-        <div className="container-x py-24 md:py-32 grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <p className="eyebrow text-gold-soft mb-4">Publication Design</p>
-            <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-6">
-              Des rapports qui se <span className="italic text-gold">lisent comme un livre.</span>
-            </h2>
-            <p className="text-canvas/80 leading-relaxed mb-8 max-w-md">
-              Chaque PDF est intégré en flipbook interactif, optimisé pour une lecture rapide et institutionnelle. Tournez les pages, zoomez, partagez — sans rien télécharger.
-            </p>
-            <Link to="/services" className="inline-flex items-center gap-2 text-gold gold-underline">
-              Explorer le service <ArrowUpRight size={14} />
-            </Link>
-          </div>
-          <div className="relative">
-            <div className="aspect-[4/3] bg-white shadow-2xl relative flex overflow-hidden">
-              <div className="w-1/2 border-r border-slate-100 p-6 flex flex-col gap-3">
-                <div className="h-2 w-1/3 bg-brand/80" />
-                <div className="h-1 w-full bg-slate-200" />
-                <div className="h-1 w-5/6 bg-slate-200" />
-                <div className="h-1 w-4/6 bg-slate-200" />
-                <div className="mt-auto h-24 bg-brand/10" />
-              </div>
-              <div className="w-1/2 p-6 flex flex-col gap-3">
-                <div className="h-32 bg-gold/30" />
-                <div className="h-1 w-full bg-slate-200" />
-                <div className="h-1 w-3/4 bg-slate-200" />
-                <div className="mt-auto h-2 w-1/4 bg-gold" />
-              </div>
-              <div className="absolute inset-y-0 left-1/2 w-px bg-slate-200 shadow-[0_0_20px_rgba(0,0,0,0.1)]" />
-            </div>
-            <div className="absolute -right-3 top-1/2 -translate-y-1/2 size-12 bg-gold text-brand grid place-items-center font-bold rounded-full shadow-xl">
-              →
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* SERVICES INDEX */}
-      <section className="container-x py-24 md:py-32">
-        <div className="flex items-end justify-between mb-12 border-b border-brand/15 pb-4">
+      <section className="bg-canvas border-t border-border">
+       <div className="container-x py-20 md:py-28">
+        <div className="flex items-end justify-between mb-10 md:mb-14 border-b border-brand/15 pb-4">
           <div>
             <p className="eyebrow mb-3">Core Expertise</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-brand">Six disciplines</h2>
+            <h2 className="font-serif text-4xl md:text-5xl text-brand tracking-tight">Six disciplines</h2>
           </div>
-          <span className="text-xs font-mono text-ink-muted hidden md:block">(01—06)</span>
+          <span className="text-xs font-mono text-ink-muted hidden md:block">(01 — 06)</span>
         </div>
         <div className="grid md:grid-cols-2 gap-x-12 gap-y-2">
           {SERVICES.map((s) => (
@@ -324,13 +364,17 @@ function Index() {
             </div>
           ))}
         </div>
+       </div>
       </section>
 
       {/* ARCHIVE STRIP */}
       <section className="bg-brand text-canvas">
         <div className="container-x py-20">
           <div className="flex items-end justify-between mb-8 border-b border-canvas/15 pb-4">
-            <h2 className="font-serif text-3xl md:text-4xl">Archive — Récent</h2>
+            <div>
+              <p className="eyebrow text-gold-soft mb-2">Archive</p>
+              <h2 className="font-serif text-3xl md:text-4xl tracking-tight">Livraisons récentes</h2>
+            </div>
             <Link to="/portfolio" className="text-xs uppercase tracking-widest text-gold hover:text-gold-soft">
               Index complet →
             </Link>
@@ -360,6 +404,103 @@ function Index() {
           </div>
         </div>
       </section>
+
+      {/* CONTACT CTA */}
+      <section className="container-x py-24 md:py-32 text-center border-t border-border">
+        <p className="eyebrow mb-4">Disponibilité</p>
+        <h2 className="font-serif text-4xl md:text-6xl text-brand leading-tight tracking-tight text-balance max-w-3xl mx-auto">
+          Un rapport d'impact, une identité, un événement — <span className="italic text-shimmer">parlons-en.</span>
+        </h2>
+        <p className="mt-6 text-ink-muted max-w-xl mx-auto">
+          Cabinet ouvert pour les projets institutionnels EMEA et Amérique du Nord — 2026.
+        </p>
+        <Link
+          to="/contact"
+          className="mt-10 inline-flex items-center gap-3 bg-brand text-brand-foreground font-semibold text-sm uppercase tracking-widest px-8 py-4 hover:bg-gold hover:text-brand transition-all"
+        >
+          Démarrer un projet <ArrowRight size={16} />
+        </Link>
+      </section>
     </SiteLayout>
+  );
+}
+
+// ============================================================
+// CASE STUDY HERO — flagship project, replaces old Publication Design section
+// ============================================================
+function CaseStudyHero({ project }: { project: Project }) {
+  const cover = coverSrc(project);
+  const stats = [
+    { k: project.year || "—", v: "Année de livraison" },
+    { k: project.client ? project.client.split(" ")[0] : "Studio", v: "Client" },
+    { k: (project.media?.length || 0) + (project.blocks?.length || 0) + "+", v: "Livrables produits" },
+    { k: CATEGORY_LABELS[project.category], v: "Discipline" },
+  ];
+  return (
+    <section className="bg-brand text-canvas relative overflow-hidden">
+      <div className="absolute inset-y-0 right-0 w-1/2 hidden md:block">
+        <div className="absolute inset-0 bg-gold/5" />
+        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-gold/10 blur-3xl" />
+      </div>
+      <div className="container-x py-20 md:py-28 relative">
+        <div className="grid md:grid-cols-[1fr_1.1fr] gap-10 md:gap-16 items-center">
+          {/* Left: editorial text */}
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <span className="h-px w-10 bg-gold" />
+              <p className="eyebrow text-gold-soft m-0">Case Study · Projet phare</p>
+            </div>
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl leading-[0.95] tracking-tight text-balance mb-6">
+              {project.title}
+            </h2>
+            {(project.summary || project.description) && (
+              <p className="text-canvas/80 leading-relaxed mb-8 max-w-md text-pretty">
+                {project.summary ||
+                  (project.description || "").split(/\n\n/)[0]?.slice(0, 260)}
+              </p>
+            )}
+
+            <div className="grid grid-cols-2 gap-6 border-t border-canvas/15 pt-6 mb-10">
+              {stats.map((s) => (
+                <div key={s.v}>
+                  <div className="font-serif text-2xl md:text-3xl text-gold leading-none">{s.k}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-canvas/55 mt-2">{s.v}</div>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              to="/portfolio/$slug"
+              params={{ slug: project.slug }}
+              className="inline-flex items-center gap-3 bg-gold text-brand font-semibold text-sm uppercase tracking-widest px-6 py-4 hover:bg-canvas transition-all group"
+            >
+              Découvrir l'étude complète
+              <ArrowUpRight size={16} className="transition-transform group-hover:rotate-45" />
+            </Link>
+          </div>
+
+          {/* Right: cover image */}
+          <div className="relative">
+            <div className="aspect-[4/5] bg-white/5 overflow-hidden border border-canvas/10 shadow-[0_50px_120px_-40px_rgba(0,0,0,0.6)]">
+              {cover ? (
+                <img
+                  src={cover}
+                  alt={project.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full grid place-items-center text-canvas/40 font-serif italic">
+                  Aperçu à venir
+                </div>
+              )}
+            </div>
+            <div className="absolute -top-3 -left-3 border border-gold px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest text-gold bg-brand">
+              ★ Case Study
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
