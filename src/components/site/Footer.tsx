@@ -36,14 +36,21 @@ export function Footer() {
             <li><Link to="/services" className="hover:text-brand">Expertise</Link></li>
             <li><Link to="/about" className="hover:text-brand">À propos</Link></li>
             <li><Link to="/contact" className="hover:text-brand">Contact</Link></li>
-            <li><Link to="/admin" className="hover:text-brand opacity-60">Espace admin</Link></li>
           </ul>
         </div>
       </div>
       <div className="border-t border-border">
         <div className="container-x py-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] uppercase tracking-widest text-ink-muted">
           <span>© {new Date().getFullYear()} Mohamed Benchokroun</span>
-          <span>Sovereign Studio · Rabat</span>
+          <div className="flex items-center gap-4">
+            <span>Sovereign Studio · Rabat</span>
+            <Link
+              to="/admin"
+              aria-label="Console d'administration"
+              title="Console"
+              className="size-1.5 rounded-full bg-ink-muted/40 hover:bg-gold transition-colors"
+            />
+          </div>
         </div>
       </div>
     </footer>

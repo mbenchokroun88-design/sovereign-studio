@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Plus, Sparkles, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { smartImportProject } from "@/lib/api/smart-import.functions";
+import { uploadOptimizedMedia } from "@/lib/media/client-optimize";
 import type { Project } from "@/lib/store/projects";
 
 type DraftMedia = { url: string; filename?: string; hint?: string; uploading?: boolean };
@@ -37,17 +37,12 @@ export function SmartImportModal({
     updateRow(i, { uploading: true });
     const uploaded: DraftMedia[] = [];
     for (const file of arr) {
-      const path = `imports/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-      const { error } = await supabase.storage.from("project-media").upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-      if (error) {
-        toast.error(`Upload ${file.name} : ${error.message}`);
-        continue;
+      try {
+        const res = await uploadOptimizedMedia(file, "imports");
+        uploaded.push({ url: res.url, filename: file.name });
+      } catch (err) {
+        toast.error(`Upload ${file.name} : ${err instanceof Error ? err.message : "échec"}`);
       }
-      const { data } = supabase.storage.from("project-media").getPublicUrl(path);
-      uploaded.push({ url: data.publicUrl, filename: file.name });
     }
     setMedias((m) => {
       const next = [...m];
