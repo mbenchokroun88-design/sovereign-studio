@@ -4,6 +4,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 
+const CONTACT_EMAIL = "mohamed.benchokroun@gmail.com";
+const CONTACT_PHONE = "+212697953261";
+
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
@@ -44,11 +47,11 @@ function Contact() {
           <div>
             <p className="eyebrow mb-3">Direct</p>
             <div className="space-y-3">
-              <a href="mailto:m.benchokroun@studio.ma" className="flex items-center gap-3 text-sm text-brand hover:text-gold">
-                <Mail size={16} /> m.benchokroun@studio.ma
+              <a href={`mailto:${CONTACT_EMAIL}`} className="flex items-center gap-3 text-sm text-brand hover:text-gold">
+                <Mail size={16} /> {CONTACT_EMAIL}
               </a>
-              <a href="tel:+212600000000" className="flex items-center gap-3 text-sm text-brand hover:text-gold">
-                <Phone size={16} /> +212 6 00 00 00 00
+              <a href={`tel:${CONTACT_PHONE}`} className="flex items-center gap-3 text-sm text-brand hover:text-gold">
+                <Phone size={16} /> +212 697 95 32 61
               </a>
             </div>
           </div>
@@ -61,9 +64,29 @@ function Contact() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            const form = e.target as HTMLFormElement;
+            const data = new FormData(form);
+            const name = String(data.get("name") || "");
+            const org = String(data.get("org") || "");
+            const email = String(data.get("email") || "");
+            const phone = String(data.get("phone") || "");
+            const type = String(data.get("type") || "");
+            const message = String(data.get("message") || "");
+            const body = [
+              `Nom : ${name}`,
+              `Organisation : ${org}`,
+              `Email : ${email}`,
+              `Téléphone : ${phone}`,
+              `Type de projet : ${type}`,
+              "",
+              "Message :",
+              message,
+            ].join("\n");
+            const subject = `Nouveau projet — ${name || "Contact"}`;
+            window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             setSent(true);
-            toast.success("Message envoyé. Réponse sous 24h.");
-            (e.target as HTMLFormElement).reset();
+            toast.success("Votre client email s'ouvre pour finaliser l'envoi.");
+            form.reset();
           }}
           className="md:col-span-3 bg-white border border-border p-8 md:p-12 space-y-6"
         >
