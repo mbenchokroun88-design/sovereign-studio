@@ -1,19 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BookOpen, Box, Clapperboard, Layers, MonitorSmartphone, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import portrait from "@/assets/portrait.jpg";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "À propos — Mohamed Benchokroun" },
-      { name: "description", content: "Designer institutionnel basé à Rabat. Plus de 8 ans au service des institutions internationales et marocaines." },
-      { property: "og:title", content: "À propos — Mohamed Benchokroun" },
-      { property: "og:description", content: "Studio de design institutionnel basé à Rabat." },
+      { title: "Studio & Expertise — Mohamed Benchokroun" },
+      { name: "description", content: "Studio de design institutionnel à Rabat. Six disciplines pour les institutions internationales." },
+      { property: "og:title", content: "Studio & Expertise — Mohamed Benchokroun" },
+      { property: "og:description", content: "Six disciplines, une signature institutionnelle." },
     ],
   }),
   component: About,
 });
+
+const DISCIPLINES = [
+  { icon: Sparkles, id: "01", title: "Identité Visuelle" },
+  { icon: BookOpen, id: "02", title: "Rapports & Édition" },
+  { icon: Layers, id: "03", title: "Événements" },
+  { icon: Clapperboard, id: "04", title: "Vidéo & Motion" },
+  { icon: Box, id: "05", title: "Maquettes & 3D" },
+  { icon: MonitorSmartphone, id: "06", title: "Web & Application" },
+];
 
 function About() {
   return (
@@ -21,53 +30,68 @@ function About() {
       <section className="container-x pt-16 md:pt-24 pb-16">
         <div className="grid md:grid-cols-2 gap-12 items-end">
           <div>
-            <p className="eyebrow mb-4">Portrait</p>
+            <p className="eyebrow mb-4">Studio</p>
             <h1 className="font-serif text-5xl md:text-7xl text-brand leading-[0.95] tracking-tight text-balance">
-              Designer institutionnel, basé à <span className="italic text-gold">Rabat</span>.
+              Studio & <span className="italic text-gold">expertise</span>.
             </h1>
           </div>
           <div>
             <p className="text-lg text-ink-muted leading-relaxed text-pretty">
-              Mohamed Benchokroun accompagne depuis plus de huit ans les institutions publiques, les organisations multilatérales et les entreprises privées dans la conception de leurs systèmes visuels et de leurs publications stratégiques.
+              Design institutionnel pour banques de développement, ministères et organisations internationales. Depuis Rabat, pour l'Europe, l'Afrique et l'Amérique du Nord.
             </p>
           </div>
         </div>
       </section>
 
       <section className="bg-white border-y border-border">
-        <div className="container-x py-16 grid md:grid-cols-5 gap-12 items-center">
+        <div className="container-x py-16 md:py-20 grid md:grid-cols-5 gap-12 items-center">
           <div className="md:col-span-2">
             <div className="aspect-[4/5] overflow-hidden bg-muted">
               <img src={portrait} alt="Mohamed Benchokroun" className="w-full h-full object-cover" />
             </div>
           </div>
-          <div className="md:col-span-3 space-y-8">
-            <div>
-              <p className="eyebrow mb-3">Approche</p>
-              <p className="font-serif text-2xl text-brand leading-snug text-balance">
-                Conjuguer rigueur institutionnelle, exigence éditoriale et écriture visuelle contemporaine.
-              </p>
+          <div className="md:col-span-3 space-y-6">
+            <p className="font-serif text-2xl text-brand leading-snug text-balance">
+              Rigueur institutionnelle, exigence éditoriale, écriture visuelle contemporaine.
+            </p>
+            <p className="text-ink-muted leading-relaxed">
+              Trilingue FR · EN · AR. Rabat · Paris · Washington.
+            </p>
+            <div className="grid grid-cols-3 gap-6 pt-4 border-t border-border">
+              {[
+                ["8+", "Années"],
+                ["60+", "Projets"],
+                ["12", "Pays"],
+              ].map(([num, label]) => (
+                <div key={label}>
+                  <div className="font-serif text-4xl md:text-5xl text-brand">{num}</div>
+                  <p className="mt-1 text-[10px] text-ink-muted uppercase tracking-widest">{label}</p>
+                </div>
+              ))}
             </div>
-            <p className="text-ink-muted leading-relaxed">
-              De la Banque Mondiale à la BEI, des ministères marocains aux clusters industriels, chaque mission est traitée avec la même exigence : clarté du message, qualité d'exécution et cohérence du système. Je conçois des supports faits pour durer — imprimés, digitaux, expérientiels.
-            </p>
-            <p className="text-ink-muted leading-relaxed">
-              Trilingue (Français · Anglais · Arabe), je collabore en direct avec mes clients à Rabat, Casablanca, Bruxelles, Washington et Paris.
-            </p>
           </div>
         </div>
       </section>
 
-      <section className="container-x py-20">
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            ["8+", "Années d'expérience"],
-            ["60+", "Projets institutionnels livrés"],
-            ["12", "Pays d'intervention"],
-          ].map(([num, label]) => (
-            <div key={label} className="border-t border-brand/15 pt-6">
-              <div className="font-serif text-6xl text-brand">{num}</div>
-              <p className="mt-2 text-sm text-ink-muted uppercase tracking-widest">{label}</p>
+      {/* DISCIPLINES */}
+      <section className="container-x py-20 md:py-28">
+        <div className="flex items-end justify-between mb-10 border-b border-brand/15 pb-4">
+          <div>
+            <p className="eyebrow mb-3">Expertise</p>
+            <h2 className="font-serif text-4xl md:text-5xl text-brand tracking-tight">Six disciplines</h2>
+          </div>
+          <span className="text-xs font-mono text-ink-muted hidden md:block">(01 — 06)</span>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
+          {DISCIPLINES.map((s) => (
+            <div key={s.id} className="group flex items-center gap-4 py-5 border-b border-border">
+              <div className="size-11 grid place-items-center bg-brand/5 text-brand group-hover:bg-gold group-hover:text-brand transition-colors">
+                <s.icon size={18} />
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] font-mono text-gold">{s.id}</p>
+                <h3 className="font-serif text-xl text-brand">{s.title}</h3>
+              </div>
             </div>
           ))}
         </div>
@@ -75,7 +99,7 @@ function About() {
 
       <section className="bg-brand text-canvas">
         <div className="container-x py-20">
-          <p className="eyebrow text-gold-soft mb-6">Clients & Partenaires sélectionnés</p>
+          <p className="eyebrow text-gold-soft mb-6">Clients sélectionnés</p>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-3 font-serif text-xl text-canvas/80">
             {[
               "World Bank / IFC",
