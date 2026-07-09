@@ -246,34 +246,7 @@ function Index() {
         </div>
       </section>
 
-      {/* PRINCIPLES — sober editorial manifesto strip */}
-      <section className="border-b border-border">
-        <div className="container-x py-16 md:py-24 grid md:grid-cols-[0.4fr_1.6fr] gap-8 md:gap-16">
-          <div>
-            <p className="eyebrow mb-3">Méthode</p>
-            <h2 className="font-serif text-3xl md:text-4xl text-brand leading-tight">
-              Quatre principes, une signature.
-            </h2>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-x-10 gap-y-8">
-            {PRINCIPLES.map((p) => (
-              <div key={p.n} className="border-t-2 border-brand pt-4">
-                <div className="flex items-baseline justify-between mb-2">
-                  <span className="font-mono text-xs text-gold">{p.n}</span>
-                  <span className="h-px flex-1 bg-brand/10 ml-3" />
-                </div>
-                <h3 className="font-serif text-xl md:text-2xl text-brand mb-2">{p.t}</h3>
-                <p className="text-sm text-ink-muted leading-relaxed">{p.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CASE STUDY HERO — flagship project (replaces old Publication section) */}
-      {heroCase && <CaseStudyHero project={heroCase} />}
-
-      {/* SELECTED WORKS — 2-col editorial grid */}
+      {/* SELECTED WORKS — editorial grid */}
       <section className="container-x py-20 md:py-28">
         <div className="flex items-end justify-between mb-10 md:mb-14 border-b border-brand/15 pb-4">
           <div>
@@ -285,7 +258,7 @@ function Index() {
           </Link>
         </div>
 
-        <div className="grid gap-x-10 gap-y-16 md:grid-cols-2">
+        <div className="grid gap-x-6 md:gap-x-8 gap-y-10 md:gap-y-14 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {worksGrid.map((p, i) => (
             <Link
               key={p.id}
@@ -293,7 +266,7 @@ function Index() {
               params={{ slug: p.slug }}
               className="group block"
             >
-              <div className="relative aspect-[4/3] bg-muted overflow-hidden mb-5">
+              <div className="relative aspect-[4/5] bg-muted overflow-hidden mb-4">
                 {coverSrc(p) ? (
                   <img
                     src={coverSrc(p)}
@@ -308,81 +281,20 @@ function Index() {
                   {String(i + 1).padStart(2, "0")} / {CATEGORY_LABELS[p.category]}
                 </span>
               </div>
-              <div className="flex items-baseline justify-between gap-4 mb-2 text-[10px] font-mono uppercase tracking-widest text-ink-muted">
+              <div className="flex items-baseline justify-between gap-4 mb-1 text-[10px] font-mono uppercase tracking-widest text-ink-muted">
                 <span>{p.client || "—"}</span>
                 <span>{p.year}</span>
               </div>
-              <h3 className="font-serif text-2xl md:text-3xl text-brand leading-tight group-hover:text-gold transition-colors">
+              <h3 className="font-serif text-lg md:text-xl text-brand leading-tight group-hover:text-gold transition-colors">
                 {p.title}
               </h3>
-              {p.summary && (
-                <p className="mt-2 text-sm text-ink-muted leading-relaxed line-clamp-2">{p.summary}</p>
-              )}
             </Link>
           ))}
         </div>
-      </section>
-
-      {/* SERVICES INDEX */}
-      <section className="bg-canvas border-t border-border">
-       <div className="container-x py-20 md:py-28">
-        <div className="flex items-end justify-between mb-10 md:mb-14 border-b border-brand/15 pb-4">
-          <div>
-            <p className="eyebrow mb-3">Core Expertise</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-brand tracking-tight">Six disciplines</h2>
-          </div>
-          <span className="text-xs font-mono text-ink-muted hidden md:block">(01 — 06)</span>
-        </div>
-        <div className="grid md:grid-cols-2 gap-x-12 gap-y-2">
-          {SERVICES.map((s) => (
-            <div key={s.id} className="group flex items-start gap-6 py-6 border-b border-border">
-              <span className="text-gold font-mono text-xs mt-2">{s.id}</span>
-              <div className="flex-1">
-                <h3 className="font-serif text-2xl text-brand group-hover:text-gold transition-colors">{s.title}</h3>
-                <p className="mt-2 text-sm text-ink-muted leading-relaxed max-w-md">{s.desc}</p>
-              </div>
-              <ArrowUpRight size={18} className="text-brand/30 mt-2 group-hover:text-gold transition-colors" />
-            </div>
-          ))}
-        </div>
-       </div>
-      </section>
-
-      {/* ARCHIVE STRIP */}
-      <section className="bg-brand text-canvas">
-        <div className="container-x py-20">
-          <div className="flex items-end justify-between mb-8 border-b border-canvas/15 pb-4">
-            <div>
-              <p className="eyebrow text-gold-soft mb-2">Archive</p>
-              <h2 className="font-serif text-3xl md:text-4xl tracking-tight">Livraisons récentes</h2>
-            </div>
-            <Link to="/portfolio" className="text-xs uppercase tracking-widest text-gold hover:text-gold-soft">
-              Index complet →
-            </Link>
-          </div>
-          <div className="divide-y divide-canvas/10">
-            {recent.map((p, i) => (
-              <Link
-                key={p.id}
-                to="/portfolio/$slug"
-                params={{ slug: p.slug }}
-                className="group flex items-center justify-between py-5 hover:px-4 transition-all duration-300"
-              >
-                <div className="flex items-baseline gap-4 md:gap-8">
-                  <span className="text-xs font-mono text-canvas/40">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div>
-                    <h3 className="font-serif text-xl md:text-2xl group-hover:text-gold transition-colors">{p.title}</h3>
-                    <p className="text-xs text-canvas/50 mt-1">{p.client}</p>
-                  </div>
-                </div>
-                <div className="hidden md:block text-xs uppercase tracking-widest text-canvas/50 group-hover:text-gold transition-colors">
-                  {CATEGORY_LABELS[p.category]} · {p.year}
-                </div>
-              </Link>
-            ))}
-          </div>
+        <div className="mt-12 flex md:hidden justify-center">
+          <Link to="/portfolio" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-medium text-brand gold-underline">
+            Index complet <ArrowUpRight size={14} />
+          </Link>
         </div>
       </section>
 
