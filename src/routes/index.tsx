@@ -29,22 +29,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const PRINCIPLES = [
-  { n: "01", t: "Rigueur institutionnelle", d: "Grilles typographiques strictes, hiérarchie éditoriale, respect des chartes de marque et des standards de gouvernance." },
-  { n: "02", t: "Design piloté par la donnée", d: "Data-visualisations, infographies et rapports d'impact conçus pour communiquer avec précision — pas pour décorer." },
-  { n: "03", t: "Exécution multi-support", d: "Print, événementiel, digital, 3D, motion : une même identité, cohérente sur chaque livrable." },
-  { n: "04", t: "Confidentialité & délais", d: "Habitudes de secteur régulé — NDA, versioning, comité de relecture, respect strict des jalons." },
-];
-
-const SERVICES = [
-  { id: "01", title: "Identité Visuelle", desc: "Marques institutionnelles, chartes complètes et systèmes d'identité multilingues." },
-  { id: "02", title: "Rapports & Édition", desc: "Rapports d'impact, publications, infographies et flipbooks digitaux." },
-  { id: "03", title: "Événements", desc: "Couverture visuelle complète : signalétique, supports, captation et livrables." },
-  { id: "04", title: "Vidéo & Motion", desc: "Documentaires, films institutionnels, motion design et étalonnage." },
-  { id: "05", title: "3D & Visites Virtuelles", desc: "Maquettes architecturales, rendus photoréalistes et visites interactives." },
-  { id: "06", title: "Web & Application", desc: "Design produit, prototypage et accompagnement développement." },
-];
-
 function coverSrc(p: Project) {
   const url = p.cover || "";
   return isDriveUrl(url) ? toDriveImage(url) : url;
@@ -74,10 +58,7 @@ function Index() {
   const { projects } = useProjects();
   const { slides } = useHeroSlides();
   const { clients } = useClients();
-  const featured = projects.filter((p) => p.featured);
-  const heroCase = featured[0] ?? projects[0]; // flagship case study
-  const worksGrid = projects.filter((p) => p.id !== heroCase?.id).slice(0, 4);
-  const recent = projects.slice(0, 8);
+  const worksGrid = projects.slice(0, 12);
   const activeSlides = slides.filter((s) => s.visible);
   const [slideIndex, setSlideIndex] = useState(0);
   useEffect(() => {
