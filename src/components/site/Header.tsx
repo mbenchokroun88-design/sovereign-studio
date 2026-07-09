@@ -5,8 +5,7 @@ import { Menu, X } from "lucide-react";
 const nav = [
   { to: "/", label: "Accueil" },
   { to: "/portfolio", label: "Portfolio" },
-  { to: "/services", label: "Expertise" },
-  { to: "/about", label: "À propos" },
+  { to: "/about", label: "Studio" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
@@ -39,9 +38,6 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-[10px] font-semibold uppercase tracking-widest px-2 py-1 border border-brand/20 text-brand">
-            Rabat / Global
-          </div>
           <button
             className="md:hidden p-2 -mr-2 text-brand"
             onClick={() => setOpen((s) => !s)}

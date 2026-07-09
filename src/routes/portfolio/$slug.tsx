@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { CATEGORY_LABELS, isDriveUrl, toDriveImage, useProjects } from "@/lib/store/projects";
-import { ProjectViews } from "@/components/site/ProjectViews";
+import { ProjectBlocks } from "@/components/site/ProjectBlocks";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -57,7 +57,6 @@ function ProjectDetail() {
             <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl leading-[0.95] tracking-tight text-balance max-w-4xl">
               {project.title}
             </h1>
-            <p className="mt-6 md:mt-8 text-base md:text-lg text-canvas/80 max-w-2xl">{project.summary}</p>
           </div>
         </header>
 
@@ -78,24 +77,10 @@ function ProjectDetail() {
           </div>
         </section>}
 
-        {/* DESCRIPTION */}
-        <section className="container-x pb-16">
-          <div className="grid md:grid-cols-3 gap-8 md:gap-10">
-            <div>
-              <p className="eyebrow">À propos du projet</p>
-            </div>
-            <div className="md:col-span-2">
-              <p className="font-serif text-xl md:text-2xl text-brand leading-snug text-balance">
-                {project.description}
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* PAGE BUILDER — long scroll composed in admin */}
         {hasBlocks && (
           <section className="border-y border-border">
-            <ProjectViews blocks={project.blocks!} />
+            <ProjectBlocks blocks={project.blocks!} />
           </section>
         )}
 
