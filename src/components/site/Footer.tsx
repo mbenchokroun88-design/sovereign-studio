@@ -13,10 +13,10 @@ export function Footer() {
             et Amérique du Nord.
           </p>
           <a
-            href="mailto:m.benchokroun@studio.ma"
+            href="mailto:mohamed.benchokroun@gmail.com"
             className="text-sm font-medium gold-underline text-brand"
           >
-            m.benchokroun@studio.ma
+            mohamed.benchokroun@gmail.com
           </a>
         </div>
 
@@ -33,8 +33,7 @@ export function Footer() {
           <p className="eyebrow mb-4">Navigation</p>
           <ul className="space-y-2 text-sm text-ink-muted">
             <li><Link to="/portfolio" className="hover:text-brand">Portfolio</Link></li>
-            <li><Link to="/services" className="hover:text-brand">Expertise</Link></li>
-            <li><Link to="/about" className="hover:text-brand">À propos</Link></li>
+            <li><Link to="/about" className="hover:text-brand">Studio</Link></li>
             <li><Link to="/contact" className="hover:text-brand">Contact</Link></li>
           </ul>
         </div>
