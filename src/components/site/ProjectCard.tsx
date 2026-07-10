@@ -58,7 +58,6 @@ export function ProjectCard({ project, variant = "default" }: { project: Project
           {project.title}
         </h3>
         <p className="text-xs text-ink-muted mt-1">{project.client} · {project.year}</p>
-        <p className="mt-3 text-sm text-ink-muted line-clamp-2 flex-1">{project.summary}</p>
         <div className="mt-4 flex items-center text-xs font-medium text-brand group-hover:text-gold">
           Voir le projet
           <ArrowUpRight size={14} className="ml-1" />

@@ -24,9 +24,7 @@ function ProjectDetail() {
   const { projects, getBySlug, isLoading } = useProjects();
   const project = getBySlug(slug);
 
-  if (!project && !isLoading) {
-    throw notFound();
-  }
+  if (!project && !isLoading) throw notFound();
   if (!project) {
     return (
       <SiteLayout>
@@ -35,98 +33,89 @@ function ProjectDetail() {
     );
   }
 
-  const related = projects.filter((p) => p.id !== project.id && p.category === project.category).slice(0, 3);
-
   const hasBlocks = (project.blocks?.length ?? 0) > 0;
   const cover = project.cover && isDriveUrl(project.cover) ? toDriveImage(project.cover) : project.cover;
+  const relatedAll = projects.filter((p) => p.id !== project.id);
+  const sameCat = relatedAll.filter((p) => p.category === project.category);
+  const others = relatedAll.filter((p) => p.category !== project.category);
+  const related = [...sameCat, ...others].slice(0, 8);
 
   return (
     <SiteLayout>
       <article>
-        {/* HERO */}
+        {/* HERO — full-bleed visual */}
         <header className="relative bg-brand text-canvas overflow-hidden">
-          <div className="absolute inset-0 opacity-30">
-            {cover && <img src={cover} alt="" className="w-full h-full object-cover" />}
-            <div className="absolute inset-0 bg-gradient-to-t from-brand to-transparent" />
-          </div>
-          <div className="relative container-x pt-12 pb-16 md:pt-20 md:pb-24">
-            <Link to="/portfolio" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gold hover:text-gold-soft mb-12">
+          {cover && (
+            <div className="absolute inset-0">
+              <img src={cover} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand via-brand/60 to-brand/20" />
+              <div className="absolute inset-0 bg-gradient-to-r from-brand/70 via-transparent to-transparent" />
+            </div>
+          )}
+          <div className="relative container-x pt-10 pb-20 md:pt-16 md:pb-32 min-h-[70vh] flex flex-col justify-between">
+            <Link to="/portfolio" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gold hover:text-gold-soft w-fit">
               <ArrowLeft size={14} /> Retour à l'index
             </Link>
-            <p className="eyebrow text-gold-soft mb-4">{CATEGORY_LABELS[project.category]}</p>
-            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl leading-[0.95] tracking-tight text-balance max-w-4xl">
-              {project.title}
-            </h1>
+            <div className="mt-16 md:mt-24 max-w-5xl">
+              <div className="flex flex-wrap items-center gap-3 mb-6">
+                <span className="text-[10px] uppercase tracking-[0.25em] text-gold-soft bg-brand/40 backdrop-blur px-3 py-1.5 border border-gold/30">
+                  {CATEGORY_LABELS[project.category]}
+                </span>
+                {project.year && (
+                  <span className="text-[10px] uppercase tracking-[0.25em] text-canvas/70">{project.year}</span>
+                )}
+              </div>
+              <h1 className="font-serif text-4xl sm:text-6xl md:text-8xl leading-[0.9] tracking-tight text-balance">
+                {project.title}
+              </h1>
+              {project.client && (
+                <p className="mt-8 text-lg md:text-xl text-canvas/80 font-light">
+                  Pour <span className="italic text-gold">{project.client}</span>
+                </p>
+              )}
+            </div>
           </div>
         </header>
 
-        {/* META */}
-        <section className="border-b border-border bg-white">
-          <div className="container-x py-6 md:py-8 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            <Meta label="Client" value={project.client} />
-            <Meta label="Année" value={project.year} />
-            <Meta label="Catégorie" value={CATEGORY_LABELS[project.category]} />
-            <Meta label="Tags" value={project.tags?.join(" · ") || "—"} />
+        {hasBlocks && <ProjectBlocks blocks={project.blocks!} />}
+
+        {/* Clear end-of-project divider so users know related section starts */}
+        <section className="bg-brand text-canvas">
+          <div className="container-x py-16 md:py-24 text-center">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-gold-soft mb-4">Fin du projet</p>
+            <div className="font-serif text-2xl md:text-3xl italic text-gold mb-8">— · —</div>
+            <Link to="/contact" className="inline-flex items-center gap-2 bg-gold text-brand px-6 py-3 font-medium hover:bg-gold-soft">
+              Démarrer un projet similaire <ArrowUpRight size={16} />
+            </Link>
           </div>
         </section>
 
-        {/* COVER */}
-        {cover && <section className="container-x py-12 md:py-16">
-          <div className="bg-muted flex items-center justify-center">
-            <img src={cover} alt={project.title} className="w-full h-auto max-h-[80vh] object-contain block" />
-          </div>
-        </section>}
-
-        {/* PAGE BUILDER — long scroll composed in admin */}
-        {hasBlocks && (
-          <section className="border-y border-border">
-            <ProjectBlocks blocks={project.blocks!} />
-          </section>
-        )}
-
-        {/* RELATED */}
         {related.length > 0 && (
-          <section className="container-x py-20">
-            <h2 className="font-serif text-3xl text-brand mb-8">Projets similaires</h2>
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+          <section className="container-x py-16 md:py-24 bg-canvas">
+            <div className="mb-10 md:mb-14">
+              <p className="eyebrow mb-3">Continuer l'exploration</p>
+              <h2 className="font-serif text-3xl md:text-4xl text-brand">Autres projets</h2>
+            </div>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
               {related.map((p) => (
-                <Link
-                  key={p.id}
-                  to="/portfolio/$slug"
-                  params={{ slug: p.slug }}
-                  className="group"
-                >
-                  <div className="aspect-[4/3] overflow-hidden bg-muted">
-                    <img src={isDriveUrl(p.cover) ? toDriveImage(p.cover) : p.cover} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <Link key={p.id} to="/portfolio/$slug" params={{ slug: p.slug }} className="group">
+                  <div className="aspect-[4/5] overflow-hidden bg-muted">
+                    <img
+                      src={isDriveUrl(p.cover) ? toDriveImage(p.cover) : p.cover}
+                      alt={p.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
                   </div>
-                  <h3 className="mt-3 font-serif text-lg text-brand group-hover:text-gold">{p.title}</h3>
+                  <p className="mt-3 text-[10px] uppercase tracking-widest text-ink-muted">{CATEGORY_LABELS[p.category]}</p>
+                  <h3 className="mt-1 font-serif text-base text-brand group-hover:text-gold leading-tight">{p.title}</h3>
                   <p className="text-xs text-ink-muted">{p.client}</p>
                 </Link>
               ))}
             </div>
           </section>
         )}
-
-        {/* CTA */}
-        <section className="bg-brand text-canvas">
-          <div className="container-x py-20 text-center">
-            <h2 className="font-serif text-4xl md:text-5xl italic text-gold">Un projet similaire ?</h2>
-            <p className="mt-4 text-canvas/80 max-w-xl mx-auto">Discutons de votre prochaine mission institutionnelle.</p>
-            <Link to="/contact" className="mt-8 inline-flex items-center gap-2 bg-gold text-brand px-6 py-3 font-medium hover:bg-gold-soft">
-              Démarrer un projet <ArrowUpRight size={16} />
-            </Link>
-          </div>
-        </section>
       </article>
     </SiteLayout>
-  );
-}
-
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-[10px] uppercase tracking-widest text-ink-muted mb-2">{label}</p>
-      <p className="text-sm text-brand font-medium">{value}</p>
-    </div>
   );
 }
