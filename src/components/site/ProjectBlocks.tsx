@@ -1,20 +1,56 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { isDriveUrl, toDriveImage, toVideoEmbed, type LayoutBlock, type MediaItem } from "@/lib/store/projects";
 import { Flipbook } from "@/components/site/Flipbook";
 import { Mockup3D } from "@/components/site/Mockup3D";
 import { CinematicCarousel } from "@/components/site/CinematicCarousel";
+import { Lightbox } from "@/components/site/Lightbox";
 
 function resolve(u: string) {
   return isDriveUrl(u) ? toDriveImage(u) : u;
 }
 
+type LB = { images: string[]; open: (url: string) => void };
+const LightboxCtx = createContext<LB>({ images: [], open: () => {} });
+
 export function ProjectBlocks({ blocks }: { blocks: LayoutBlock[] }) {
+  const images = useMemo(() => {
+    const out: string[] = [];
+    for (const b of blocks) {
+      if (b.type === "image" && b.url && (!b.mockup || b.mockup === "none")) out.push(resolve(b.url));
+      else if (b.type === "gallery") for (const u of b.urls) if (u) out.push(resolve(u));
+      else if (b.type === "text_image" && b.url && b.position !== "overlay") out.push(resolve(b.url));
+    }
+    return out;
+  }, [blocks]);
+  const [idx, setIdx] = useState(-1);
+  const open = (url: string) => {
+    const i = images.indexOf(url);
+    if (i >= 0) setIdx(i);
+  };
   return (
-    <div className="bg-white">
-      {blocks.map((b) => (
-        <BlockView key={b.id} block={b} />
-      ))}
-    </div>
+    <LightboxCtx.Provider value={{ images, open }}>
+      <div className="bg-white">
+        {blocks.map((b) => (
+          <BlockView key={b.id} block={b} />
+        ))}
+      </div>
+      {idx >= 0 && (
+        <Lightbox images={images} index={idx} onClose={() => setIdx(-1)} onIndex={setIdx} />
+      )}
+    </LightboxCtx.Provider>
+  );
+}
+
+function ClickableImg({ src, alt, className }: { src: string; alt?: string; className?: string }) {
+  const { open } = useContext(LightboxCtx);
+  return (
+    <img
+      src={src}
+      alt={alt || ""}
+      loading="lazy"
+      onClick={() => open(src)}
+      className={`${className || ""} cursor-zoom-in transition-transform duration-500 hover:scale-[1.01]`}
+    />
   );
 }
 
@@ -36,7 +72,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
       ) : (
         <>
           {src ? (
-            <img src={src} alt={block.caption || ""} className="w-full h-auto block object-contain" />
+            <ClickableImg src={src} alt={block.caption} className="w-full h-auto block object-contain" />
           ) : (
             <div className="w-full aspect-[16/9] bg-muted grid place-items-center text-ink-muted text-xs">
               (image manquante)
@@ -50,17 +86,17 @@ function BlockView({ block }: { block: LayoutBlock }) {
         </>
       );
       if (block.width === "full") {
-        return <section className="py-6 md:py-10 px-4 md:px-0">{inner}</section>;
+        return <section className="py-2 md:py-4 px-2 md:px-0">{inner}</section>;
       }
       if (block.width === "wide") {
         return (
-          <section className="py-8 md:py-14">
+          <section className="py-3 md:py-6">
             <div className="max-w-6xl mx-auto px-4 md:px-8">{inner}</div>
           </section>
         );
       }
       return (
-        <section className="py-10 md:py-16 bg-canvas">
+        <section className="py-4 md:py-8 bg-canvas">
           <div className="max-w-4xl mx-auto px-4 md:px-8">{inner}</div>
         </section>
       );
@@ -71,7 +107,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
       if (block.variant === "cinematic" && urls.length > 0) {
         const items: MediaItem[] = urls.map((u) => ({ slot: "other", kind: "image", url: u }));
         return (
-          <section className="py-8 md:py-14">
+          <section className="py-4 md:py-8">
             <div className="max-w-6xl mx-auto px-2 md:px-8">
               <CinematicCarousel media={items} onOpen={() => {}} />
               {block.caption && (
@@ -85,12 +121,12 @@ function BlockView({ block }: { block: LayoutBlock }) {
       }
       const cols = block.columns === 3 ? "md:grid-cols-3" : "md:grid-cols-2";
       return (
-        <section className="py-8 md:py-14">
+        <section className="py-4 md:py-8">
           <div className="max-w-6xl mx-auto px-4 md:px-8">
-            <div className={`grid grid-cols-1 ${cols} gap-4 md:gap-6`}>
+            <div className={`grid grid-cols-1 ${cols} gap-2 md:gap-3`}>
               {urls.map((u, i) => (
                 <div key={i} className="bg-muted overflow-hidden flex items-center justify-center">
-                  <img src={resolve(u)} alt="" className="w-full h-auto block object-contain" />
+                  <ClickableImg src={resolve(u)} className="w-full h-auto block object-contain" />
                 </div>
               ))}
             </div>
@@ -121,7 +157,11 @@ function BlockView({ block }: { block: LayoutBlock }) {
         </div>
       );
       const Img = src ? (
-        <img src={src} alt={block.heading || ""} className="w-full h-auto block object-contain" />
+        block.position === "overlay" ? (
+          <img src={src} alt={block.heading || ""} className="w-full h-auto block object-contain" />
+        ) : (
+          <ClickableImg src={src} alt={block.heading} className="w-full h-auto block object-contain" />
+        )
       ) : (
         <div className="w-full aspect-[4/3] bg-muted" />
       );
@@ -133,7 +173,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
         const vCls = v === "t" ? "items-start" : v === "b" ? "items-end" : "items-center";
         const hCls = h === "l" ? "justify-start text-left" : h === "r" ? "justify-end text-right" : "justify-center text-center";
         return (
-          <section className="py-8 md:py-14">
+          <section className="py-4 md:py-8">
             <div className={container}>
               <div className={`relative w-full flex ${vCls} ${hCls}`}>
                 {Img}
@@ -159,7 +199,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
         block.position === "top" ? "flex-col" :
         "flex-col-reverse";
       return (
-        <section className="py-10 md:py-16">
+        <section className="py-5 md:py-10">
           <div className={container}>
             <div className={`flex ${stackVertical ? "" : "flex-col"} ${flexDir} gap-6 md:gap-10 items-center`}>
               <div className="flex-1 min-w-0 w-full">{Img}</div>
@@ -173,7 +213,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
     case "text": {
       const align = block.align === "center" ? "text-center mx-auto" : "";
       return (
-        <section className="py-12 md:py-20">
+        <section className="py-6 md:py-12">
           <div className={`max-w-3xl mx-auto px-4 md:px-8 ${align}`}>
             {block.eyebrow && <p className="eyebrow mb-4">{block.eyebrow}</p>}
             {block.heading && (
