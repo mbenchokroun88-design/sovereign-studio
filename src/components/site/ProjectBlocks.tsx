@@ -17,8 +17,11 @@ export function ProjectBlocks({ blocks }: { blocks: LayoutBlock[] }) {
     const out: string[] = [];
     for (const b of blocks) {
       if (b.type === "image" && b.url && (!b.mockup || b.mockup === "none")) out.push(resolve(b.url));
-      else if (b.type === "gallery") for (const u of b.urls) if (u) out.push(resolve(u));
-      else if (b.type === "text_image" && b.url && b.position !== "overlay") out.push(resolve(b.url));
+      else if (b.type === "gallery") {
+        for (const u of b.urls) if (u) out.push(resolve(u));
+      } else if (b.type === "text_image" && b.url && b.position !== "overlay") {
+        out.push(resolve(b.url));
+      }
     }
     return out;
   }, [blocks]);
