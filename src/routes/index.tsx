@@ -70,10 +70,10 @@ function Index() {
 
   return (
     <SiteLayout>
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-brand text-canvas isolate">
-        {/* Background image */}
-        <div className="absolute inset-0 -z-10">
+      {/* HERO — fullscreen cinematic */}
+      <section className="relative h-screen min-h-[640px] w-full overflow-hidden bg-brand text-canvas isolate">
+        {/* Background slides — full opacity for maximum visual impact */}
+        <div className="absolute inset-0">
           {activeSlides.length > 0 ? (
             activeSlides.map((s, i) => (
               <img
@@ -83,8 +83,8 @@ function Index() {
                 width={1920}
                 height={1080}
                 fetchPriority={i === 0 ? "high" : "low"}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1400ms] ease-in-out ${
-                  i === slideIndex ? "opacity-45 animate-kenburns" : "opacity-0"
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1600ms] ease-in-out ${
+                  i === slideIndex ? "opacity-100 animate-kenburns" : "opacity-0"
                 }`}
               />
             ))
@@ -95,45 +95,44 @@ function Index() {
               width={1920}
               height={1080}
               fetchPriority="high"
-              className="w-full h-full object-cover opacity-45 animate-kenburns"
+              className="w-full h-full object-cover animate-kenburns"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand via-brand/95 to-brand/80" />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand via-brand/40 to-transparent" />
-          <div className="absolute inset-0 hero-grid opacity-40" />
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-gold/15 blur-3xl" />
+          {/* Cinematic gradient — dark bottom for legibility, clear top for visual */}
+          <div className="absolute inset-0 bg-gradient-to-t from-brand via-brand/60 to-brand/10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.3)_100%)]" />
         </div>
 
-        <div className="container-x relative pt-24 pb-20 md:pt-32 md:pb-28 lg:pt-40 lg:pb-32 min-h-[92vh] flex flex-col justify-center">
-          {/* Corner marks */}
-          <div className="absolute top-6 left-5 md:left-12 xl:left-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/50">
-            MB / STUDIO — EST. 2013
-          </div>
-          <div className="absolute top-6 right-5 md:right-12 xl:right-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/50 text-right">
-            {new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}
-          </div>
+        {/* Corner marks */}
+        <div className="absolute top-24 left-5 md:left-12 xl:left-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/60 z-10">
+          MB / STUDIO — EST. 2013
+        </div>
+        <div className="absolute top-24 right-5 md:right-12 xl:right-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/60 text-right z-10">
+          Portfolio 2026
+        </div>
 
-          {/* Top meta line */}
-          <div key={`eb-${currentSlide?.id ?? "default"}`} className="flex items-center gap-4 mb-8 md:mb-10 animate-fade-up">
-            <span className="h-px w-16 bg-gold" />
+        {/* Text overlay — bottom-left */}
+        <div className="container-x absolute inset-x-0 bottom-0 pb-12 md:pb-20 z-10">
+          <div key={`eb-${currentSlide?.id ?? "default"}`} className="flex items-center gap-4 mb-6 md:mb-8 animate-fade-up">
+            <span className="h-px w-12 md:w-20 bg-gold" />
             <p className="eyebrow text-gold-soft m-0">
-              {currentSlide?.eyebrow || "Rabat · Paris · Washington — Portfolio 2026"}
+              {currentSlide?.eyebrow || "Rabat · Paris · Washington"}
             </p>
           </div>
 
-          {/* Headline */}
           {currentSlide ? (
             <h1
               key={`t-${currentSlide.id}`}
-              className="font-serif text-[13vw] md:text-[8vw] lg:text-[7rem] xl:text-[8rem] leading-[0.9] tracking-[-0.02em] text-balance animate-fade-up max-w-5xl"
-              style={{ animationDelay: "0.1s" }}
+              className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9.5rem] leading-[0.88] tracking-[-0.03em] text-balance animate-fade-up max-w-6xl"
+              style={{ animationDelay: "0.15s" }}
             >
               {renderHeadline(currentSlide.title)}
             </h1>
           ) : (
             <h1
-              className="font-serif text-[13vw] md:text-[8.5vw] lg:text-[7.5rem] xl:text-[8.5rem] leading-[0.88] tracking-[-0.02em] text-balance animate-fade-up max-w-5xl"
-              style={{ animationDelay: "0.1s" }}
+              className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9.5rem] leading-[0.88] tracking-[-0.03em] text-balance animate-fade-up max-w-6xl"
+              style={{ animationDelay: "0.15s" }}
             >
               <span className="block">Design pour</span>
               <span className="block"><span className="italic text-shimmer">les institutions</span></span>
@@ -141,25 +140,20 @@ function Index() {
             </h1>
           )}
 
-          {/* Sub-row */}
           <div
             key={`sr-${currentSlide?.id ?? "default"}`}
-            className="mt-10 md:mt-14 grid md:grid-cols-[1.1fr_1fr] gap-8 md:gap-16 items-end animate-fade-up"
-            style={{ animationDelay: "0.25s" }}
+            className="mt-8 md:mt-12 flex flex-wrap items-end justify-between gap-6 md:gap-12 animate-fade-up"
+            style={{ animationDelay: "0.3s" }}
           >
-            <p className="text-base md:text-lg text-canvas/80 leading-relaxed max-w-xl text-pretty">
-              {currentSlide?.subtitle || (
-                <>
-                  <span className="text-gold">Mohamed Benchokroun</span> — concepteur d'identités, de rapports et d'expériences visuelles pour banques de développement, ministères et organisations internationales. Un standard de rigueur éditoriale, exécuté depuis Rabat pour l'Europe, l'Afrique et l'Amérique du Nord.
-                </>
-              )}
+            <p className="text-sm md:text-base text-canvas/85 leading-relaxed max-w-xl text-pretty">
+              {currentSlide?.subtitle ||
+                "Concepteur d'identités, de rapports et d'expériences visuelles pour banques de développement, ministères et organisations internationales."}
             </p>
-
-            <div className="flex flex-wrap gap-3 md:justify-end">
+            <div className="flex flex-wrap gap-3">
               {currentSlide?.cta_label ? (
                 <a
                   href={currentSlide.cta_href || "/portfolio"}
-                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
+                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-xs md:text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
                 >
                   {currentSlide.cta_label}
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -167,7 +161,7 @@ function Index() {
               ) : (
                 <Link
                   to="/portfolio"
-                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
+                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-xs md:text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
                 >
                   Voir le portfolio
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -175,76 +169,69 @@ function Index() {
               )}
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-2 border border-canvas/30 text-canvas text-sm uppercase tracking-widest px-6 py-4 hover:bg-canvas hover:text-brand transition-colors"
+                className="inline-flex items-center gap-2 border border-canvas/30 text-canvas text-xs md:text-sm uppercase tracking-widest px-6 py-4 hover:bg-canvas hover:text-brand transition-colors"
               >
                 Démarrer un projet
               </Link>
             </div>
           </div>
-
-          {/* Stats — data-driven trust */}
-          <div
-            className="mt-14 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 border-t border-canvas/15 pt-8 md:pt-10 animate-fade-up"
-            style={{ animationDelay: "0.4s" }}
-          >
-            {[
-              { k: "120+", v: "Projets livrés", n: "01" },
-              { k: "14", v: "Pays couverts", n: "02" },
-              { k: "12", v: "Années d'expertise", n: "03" },
-              { k: "EU · US · MA", v: "Clients institutionnels", n: "04" },
-            ].map((s) => (
-              <div key={s.v} className="border-l border-canvas/15 pl-4">
-                <div className="text-[10px] font-mono text-gold mb-2">{s.n} —</div>
-                <div className="font-serif text-3xl md:text-4xl text-canvas leading-none tracking-tight">{s.k}</div>
-                <div className="text-[11px] uppercase tracking-widest text-canvas/55 mt-2">{s.v}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Slide dots */}
-          {activeSlides.length > 1 && (
-            <div className="absolute bottom-8 right-8 flex flex-col gap-2 z-20">
-              {activeSlides.map((s, i) => (
-                <button
-                  key={s.id}
-                  onClick={() => setSlideIndex(i)}
-                  className={`block transition-all ${i === slideIndex ? "h-8 w-px bg-gold" : "h-3 w-px bg-canvas/40 hover:bg-canvas/70"}`}
-                  aria-label={`Slide ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Marquee strip */}
-        <div className="relative border-y border-canvas/15 bg-brand/70 backdrop-blur-sm overflow-hidden">
-          <div className="container-x flex items-center justify-between py-3 border-b border-canvas/10">
-            <span className="eyebrow text-canvas/50 m-0">Ils nous font confiance</span>
-            <span className="text-[10px] font-mono text-canvas/40">— Sélection</span>
-          </div>
-          <div className="flex animate-marquee whitespace-nowrap py-4 will-change-transform">
-            {[...Array(2)].map((_, dup) => (
-              <div key={dup} className="flex items-center gap-12 px-6 shrink-0">
-                {clients.filter((c) => c.visible).map((c) => (
-                  <span key={c.id} className="flex items-center gap-12">
-                    {c.logo_url ? (
-                      <img
-                        src={c.logo_url}
-                        alt={c.name}
-                        className="h-9 md:h-11 w-auto object-contain opacity-55 hover:opacity-100 transition-opacity"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="font-serif text-xl md:text-2xl text-canvas/40 hover:text-canvas/80 transition-colors">{c.name}</span>
-                    )}
-                    <span className="text-gold">✦</span>
-                  </span>
-                ))}
-              </div>
+        {/* Slide indicators — vertical, right side */}
+        {activeSlides.length > 1 && (
+          <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+            {activeSlides.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => setSlideIndex(i)}
+                className="group flex items-center gap-3"
+                aria-label={`Slide ${i + 1}`}
+              >
+                <span
+                  className={`block transition-all ${
+                    i === slideIndex ? "h-10 w-px bg-gold" : "h-5 w-px bg-canvas/40 group-hover:bg-canvas/70"
+                  }`}
+                />
+              </button>
             ))}
           </div>
+        )}
+
+        {/* Scroll hint */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-canvas/50 animate-pulse hidden md:block">
+          Scroll ↓
         </div>
       </section>
+
+      {/* CLIENTS MARQUEE — below hero */}
+      <section className="bg-brand text-canvas border-y border-canvas/10">
+        <div className="container-x flex items-center justify-between py-3">
+          <span className="eyebrow text-canvas/50 m-0">Ils nous font confiance</span>
+          <span className="text-[10px] font-mono text-canvas/40">— Sélection</span>
+        </div>
+        <div className="flex animate-marquee whitespace-nowrap py-4 will-change-transform overflow-hidden">
+          {[...Array(2)].map((_, dup) => (
+            <div key={dup} className="flex items-center gap-12 px-6 shrink-0">
+              {clients.filter((c) => c.visible).map((c) => (
+                <span key={c.id} className="flex items-center gap-12">
+                  {c.logo_url ? (
+                    <img
+                      src={c.logo_url}
+                      alt={c.name}
+                      className="h-9 md:h-11 w-auto object-contain opacity-55 hover:opacity-100 transition-opacity"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="font-serif text-xl md:text-2xl text-canvas/40 hover:text-canvas/80 transition-colors">{c.name}</span>
+                  )}
+                  <span className="text-gold">✦</span>
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
 
       {/* SELECTED WORKS — editorial grid */}
       <section className="container-x py-20 md:py-28">
