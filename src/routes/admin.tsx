@@ -179,6 +179,13 @@ function Admin() {
                 <Sparkles size={14} /> Import IA
               </button>
               <button
+                onClick={() => setEventTemplate(eventDraft())}
+                className="inline-flex items-center gap-2 border border-gold/50 text-brand px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
+                title="Crée un projet évènementiel pré-structuré (9 sections)"
+              >
+                <Plus size={14} /> Nouveau projet Event
+              </button>
+              <button
                 onClick={() => setCreating(true)}
                 className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
               >
