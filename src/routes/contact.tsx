@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Phone, Send, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { sendContactMessage } from "@/lib/api/contact.functions";
 
 const CONTACT_EMAIL = "mohamed.benchokroun@gmail.com";
 const CONTACT_PHONE = "+212697953261";
@@ -21,6 +23,8 @@ export const Route = createFileRoute("/contact")({
 
 function Contact() {
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const send = useServerFn(sendContactMessage);
 
   return (
     <SiteLayout>
@@ -62,31 +66,31 @@ function Contact() {
         </aside>
 
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+            if (sending) return;
             const form = e.target as HTMLFormElement;
-            const data = new FormData(form);
-            const name = String(data.get("name") || "");
-            const org = String(data.get("org") || "");
-            const email = String(data.get("email") || "");
-            const phone = String(data.get("phone") || "");
-            const type = String(data.get("type") || "");
-            const message = String(data.get("message") || "");
-            const body = [
-              `Nom : ${name}`,
-              `Organisation : ${org}`,
-              `Email : ${email}`,
-              `Téléphone : ${phone}`,
-              `Type de projet : ${type}`,
-              "",
-              "Message :",
-              message,
-            ].join("\n");
-            const subject = `Nouveau projet — ${name || "Contact"}`;
-            window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            setSent(true);
-            toast.success("Votre client email s'ouvre pour finaliser l'envoi.");
-            form.reset();
+            const fd = new FormData(form);
+            const payload = {
+              name: String(fd.get("name") || ""),
+              org: String(fd.get("org") || ""),
+              email: String(fd.get("email") || ""),
+              phone: String(fd.get("phone") || ""),
+              type: String(fd.get("type") || ""),
+              message: String(fd.get("message") || ""),
+              website: String(fd.get("website") || ""), // honeypot
+            };
+            setSending(true);
+            try {
+              await send({ data: payload });
+              setSent(true);
+              toast.success("Message envoyé — je reviens vers vous rapidement.");
+              form.reset();
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Envoi impossible");
+            } finally {
+              setSending(false);
+            }
           }}
           className="md:col-span-3 bg-white border border-border p-8 md:p-12 space-y-6"
         >
@@ -126,12 +130,22 @@ function Contact() {
               className="w-full bg-transparent border-b border-brand/20 py-3 text-sm focus:outline-none focus:border-gold resize-none"
             />
           </div>
+          {/* honeypot — hidden from real users */}
+          <input
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="absolute -left-[9999px] opacity-0 h-0 w-0"
+          />
           <button
             type="submit"
-            disabled={sent}
+            disabled={sent || sending}
             className="inline-flex items-center gap-3 bg-brand text-brand-foreground px-6 py-3 font-medium hover:bg-gold hover:text-brand transition-colors disabled:opacity-50"
           >
-            {sent ? "Envoyé" : "Envoyer le message"} <Send size={16} />
+            {sent ? "Envoyé" : sending ? "Envoi…" : "Envoyer le message"}{" "}
+            {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </button>
         </form>
       </section>
