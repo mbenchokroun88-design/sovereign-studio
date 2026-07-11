@@ -299,12 +299,13 @@ function Admin() {
       {tab === "hero" && <HeroAdmin />}
       {tab === "clients" && <ClientsAdmin />}
 
-      {(editing || creating) && (
+      {(editing || creating || eventTemplate) && (
         <ProjectEditor
-          initial={editing ?? emptyDraft()}
+          initial={editing ?? eventTemplate ?? emptyDraft()}
           onClose={() => {
             setEditing(null);
             setCreating(false);
+            setEventTemplate(null);
           }}
           onSave={async (draft) => {
             try {
@@ -317,6 +318,7 @@ function Admin() {
               }
               setEditing(null);
               setCreating(false);
+              setEventTemplate(null);
             } catch (e: any) {
               toast.error(e?.message || "Erreur");
             }
