@@ -27,6 +27,7 @@ import { useHeroSlides, type HeroSlide } from "@/lib/store/hero";
 import { useClients, type ClientRow } from "@/lib/store/clients";
 import { SmartImportModal } from "@/components/site/SmartImportModal";
 import { BlockBuilder } from "@/components/site/BlockBuilder";
+import { newBlockId } from "@/lib/store/projects";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -58,10 +59,48 @@ function emptyDraft(): Draft {
   };
 }
 
+const EVENT_SECTIONS: { eyebrow: string; heading: string }[] = [
+  { eyebrow: "01", heading: "Save the date · Key visuel" },
+  { eyebrow: "02", heading: "Note de concept" },
+  { eyebrow: "03", heading: "Agenda de l'événement" },
+  { eyebrow: "04", heading: "Posts réseaux sociaux" },
+  { eyebrow: "05", heading: "Banner Google form" },
+  { eyebrow: "06", heading: "Kit event · Badges, roll-up, photocall, textile, goodies" },
+  { eyebrow: "07", heading: "Scénographie · Habillage des espaces" },
+  { eyebrow: "08", heading: "Vidéo · Lancement, opening, logo reveal, visite 3D" },
+  { eyebrow: "09", heading: "Images réelles de l'événement" },
+];
+
+function eventDraft(): Draft {
+  const blocks: LayoutBlock[] = EVENT_SECTIONS.map((s) => ({
+    id: newBlockId(),
+    type: "text",
+    align: "center",
+    eyebrow: s.eyebrow,
+    heading: s.heading,
+    body: "",
+  }));
+  return {
+    slug: "",
+    title: "",
+    client: "",
+    year: String(new Date().getFullYear()),
+    category: "event",
+    summary: "",
+    description: "",
+    cover: "",
+    featured: false,
+    tags: ["event"],
+    media: [],
+    blocks,
+  };
+}
+
 function Admin() {
   const { projects, isLoading, add, update, remove, duplicate } = useProjects();
   const [editing, setEditing] = useState<Project | null>(null);
   const [creating, setCreating] = useState(false);
+  const [eventTemplate, setEventTemplate] = useState<Draft | null>(null);
   const [smartImporting, setSmartImporting] = useState(false);
   const [tab, setTab] = useState<"projects" | "hero" | "clients">("projects");
   const [migratingId, setMigratingId] = useState<string | null>(null);
