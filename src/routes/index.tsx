@@ -12,6 +12,7 @@ import heroImg from "@/assets/hero.jpg";
 import { useEffect, useState } from "react";
 import { useHeroSlides } from "@/lib/store/hero";
 import { useClients } from "@/lib/store/clients";
+import { HeroShowcase } from "@/components/site/HeroShowcase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
