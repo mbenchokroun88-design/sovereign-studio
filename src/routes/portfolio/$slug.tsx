@@ -33,6 +33,17 @@ function ProjectDetail() {
   const { projects, getBySlug, isLoading } = useProjects();
   const project = getBySlug(slug);
 
+  // Related: all categories, shuffled — so a report visitor also discovers events, 3D, video…
+  const related = useMemo(() => {
+    const pool = projects.filter((p) => p.id !== project?.id);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 8);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects.length, project?.id]);
+
   if (!project && !isLoading) throw notFound();
   if (!project) {
     return (
@@ -59,17 +70,6 @@ function ProjectDetail() {
   const blocks: LayoutBlock[] = project.cover && !coverAlreadyInFlow
     ? [{ id: newBlockId(), type: "image", url: project.cover, width: "wide" }, ...flowBlocks]
     : flowBlocks;
-
-  // Related: all categories, shuffled — so a report visitor also discovers events, 3D, video…
-  const related = useMemo(() => {
-    const pool = projects.filter((p) => p.id !== project.id);
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    return pool.slice(0, 8);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projects.length, project.id]);
 
   return (
     <SiteLayout>
@@ -114,7 +114,8 @@ function ProjectDetail() {
         {pdfBlocks.map((b, i) => (
           <section key={b.id} className="bg-brand text-canvas border-t border-canvas/10">
             <div className="container-x pt-14 md:pt-20 pb-8 text-center">
-              <p className="eyebrow text-gold-soft mb-4">
+              <p className="eyebrow text-gold-soft mb-4 inline-flex items-center gap-2 justify-center">
+                <BookOpen size={13} />
                 {pdfBlocks.length > 1 ? `Document ${i + 1}` : "Document complet"}
               </p>
               <h2 className="font-serif text-3xl md:text-5xl leading-tight">
