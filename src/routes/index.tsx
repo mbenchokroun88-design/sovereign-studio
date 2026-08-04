@@ -12,6 +12,7 @@ import heroImg from "@/assets/hero.jpg";
 import { useEffect, useState } from "react";
 import { useHeroSlides } from "@/lib/store/hero";
 import { useClients } from "@/lib/store/clients";
+import { HeroShowcase } from "@/components/site/HeroShowcase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,138 +71,13 @@ function Index() {
 
   return (
     <SiteLayout>
-      {/* HERO — fullscreen cinematic */}
-      <section className="relative h-screen min-h-[640px] w-full overflow-hidden bg-brand text-canvas isolate">
-        {/* Background slides — full opacity for maximum visual impact */}
-        <div className="absolute inset-0">
-          {activeSlides.length > 0 ? (
-            activeSlides.map((s, i) => (
-              <img
-                key={s.id}
-                src={s.image_url || heroImg}
-                alt=""
-                width={1920}
-                height={1080}
-                fetchPriority={i === 0 ? "high" : "low"}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1600ms] ease-in-out ${
-                  i === slideIndex ? "opacity-100 animate-kenburns" : "opacity-0"
-                }`}
-              />
-            ))
-          ) : (
-            <img
-              src={heroImg}
-              alt=""
-              width={1920}
-              height={1080}
-              fetchPriority="high"
-              className="w-full h-full object-cover animate-kenburns"
-            />
-          )}
-          {/* Cinematic gradient — dark bottom for legibility, clear top for visual */}
-          <div className="absolute inset-0 bg-gradient-to-t from-brand via-brand/60 to-brand/10" />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand/70 via-transparent to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.3)_100%)]" />
-        </div>
-
-        {/* Corner marks */}
-        <div className="absolute top-24 left-5 md:left-12 xl:left-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/60 z-10">
-          MB / STUDIO — EST. 2013
-        </div>
-        <div className="absolute top-24 right-5 md:right-12 xl:right-20 text-[10px] font-mono uppercase tracking-[0.28em] text-canvas/60 text-right z-10">
-          Portfolio 2026
-        </div>
-
-        {/* Text overlay — bottom-left */}
-        <div className="container-x absolute inset-x-0 bottom-0 pb-12 md:pb-20 z-10">
-          <div key={`eb-${currentSlide?.id ?? "default"}`} className="flex items-center gap-4 mb-6 md:mb-8 animate-fade-up">
-            <span className="h-px w-12 md:w-20 bg-gold" />
-            <p className="eyebrow text-gold-soft m-0">
-              {currentSlide?.eyebrow || "Rabat · Paris · Washington"}
-            </p>
-          </div>
-
-          {currentSlide ? (
-            <h1
-              key={`t-${currentSlide.id}`}
-              className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9.5rem] leading-[0.88] tracking-[-0.03em] text-balance animate-fade-up max-w-6xl"
-              style={{ animationDelay: "0.15s" }}
-            >
-              {renderHeadline(currentSlide.title)}
-            </h1>
-          ) : (
-            <h1
-              className="font-serif text-[14vw] md:text-[9vw] lg:text-[8rem] xl:text-[9.5rem] leading-[0.88] tracking-[-0.03em] text-balance animate-fade-up max-w-6xl"
-              style={{ animationDelay: "0.15s" }}
-            >
-              <span className="block">Design pour</span>
-              <span className="block"><span className="italic text-shimmer">les institutions</span></span>
-              <span className="block text-canvas/85">qui pèsent.</span>
-            </h1>
-          )}
-
-          <div
-            key={`sr-${currentSlide?.id ?? "default"}`}
-            className="mt-8 md:mt-12 flex flex-wrap items-end justify-between gap-6 md:gap-12 animate-fade-up"
-            style={{ animationDelay: "0.3s" }}
-          >
-            <p className="text-sm md:text-base text-canvas/85 leading-relaxed max-w-xl text-pretty">
-              {currentSlide?.subtitle ||
-                "Concepteur d'identités, de rapports et d'expériences visuelles pour banques de développement, ministères et organisations internationales."}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              {currentSlide?.cta_label ? (
-                <a
-                  href={currentSlide.cta_href || "/portfolio"}
-                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-xs md:text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
-                >
-                  {currentSlide.cta_label}
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                </a>
-              ) : (
-                <Link
-                  to="/portfolio"
-                  className="group inline-flex items-center gap-3 bg-gold text-brand font-semibold text-xs md:text-sm uppercase tracking-widest px-6 py-4 hover:bg-gold-soft transition-all hover:gap-4"
-                >
-                  Voir le portfolio
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                </Link>
-              )}
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-2 border border-canvas/30 text-canvas text-xs md:text-sm uppercase tracking-widest px-6 py-4 hover:bg-canvas hover:text-brand transition-colors"
-              >
-                Démarrer un projet
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Slide indicators — vertical, right side */}
-        {activeSlides.length > 1 && (
-          <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
-            {activeSlides.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => setSlideIndex(i)}
-                className="group flex items-center gap-3"
-                aria-label={`Slide ${i + 1}`}
-              >
-                <span
-                  className={`block transition-all ${
-                    i === slideIndex ? "h-10 w-px bg-gold" : "h-5 w-px bg-canvas/40 group-hover:bg-canvas/70"
-                  }`}
-                />
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Scroll hint */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-canvas/50 animate-pulse hidden md:block">
-          Scroll ↓
-        </div>
-      </section>
+      {/* HERO — editorial split showcase */}
+      <HeroShowcase
+        slides={activeSlides}
+        index={slideIndex}
+        setIndex={setSlideIndex}
+        fallbackImg={heroImg}
+      />
 
       {/* CLIENTS MARQUEE — below hero */}
       <section className="bg-brand text-canvas border-y border-canvas/10">

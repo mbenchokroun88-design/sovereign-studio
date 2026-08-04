@@ -72,7 +72,10 @@ export function Flipbook({ url, caption }: FlipbookProps) {
         if (!cancelled) setAspect(v.width / v.height);
 
         const rendered: string[] = new Array(total);
-        const SCALE = 1.5;
+        // Retina-aware: crisp on high-DPI desktops, lighter on small screens.
+        const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+        const wide = typeof window !== "undefined" && window.innerWidth >= 900;
+        const SCALE = Math.min((wide ? 1.9 : 1.35) * dpr, 3.2);
         for (let i = 1; i <= total; i++) {
           if (cancelled) return;
           const page = await pdf.getPage(i);
@@ -82,7 +85,7 @@ export function Flipbook({ url, caption }: FlipbookProps) {
           canvas.height = viewport.height;
           const ctx = canvas.getContext("2d")!;
           await page.render({ canvasContext: ctx, viewport, canvas } as any).promise;
-          rendered[i - 1] = canvas.toDataURL("image/jpeg", 0.82);
+          rendered[i - 1] = canvas.toDataURL("image/jpeg", 0.9);
           if (!cancelled) {
             setPages([...rendered]);
             setProgress({ done: i, total });
@@ -208,7 +211,7 @@ export function Flipbook({ url, caption }: FlipbookProps) {
               showCover={true}
               mobileScrollSupport={true}
               drawShadow={true}
-              flippingTime={900}
+              flippingTime={750}
               usePortrait={isMobile}
               startZIndex={0}
               autoSize={true}

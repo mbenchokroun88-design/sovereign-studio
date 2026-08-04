@@ -1,8 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { CATEGORY_LABELS, isDriveUrl, toDriveImage, useProjects } from "@/lib/store/projects";
+import {
+  CATEGORY_LABELS,
+  isDriveUrl,
+  newBlockId,
+  toDriveImage,
+  useProjects,
+  type LayoutBlock,
+} from "@/lib/store/projects";
 import { ProjectBlocks } from "@/components/site/ProjectBlocks";
+import { Flipbook } from "@/components/site/Flipbook";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -24,6 +33,17 @@ function ProjectDetail() {
   const { projects, getBySlug, isLoading } = useProjects();
   const project = getBySlug(slug);
 
+  // Related: all categories, shuffled — so a report visitor also discovers events, 3D, video…
+  const related = useMemo(() => {
+    const pool = projects.filter((p) => p.id !== project?.id);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 8);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects.length, project?.id]);
+
   if (!project && !isLoading) throw notFound();
   if (!project) {
     return (
@@ -33,12 +53,23 @@ function ProjectDetail() {
     );
   }
 
-  const hasBlocks = (project.blocks?.length ?? 0) > 0;
   const cover = project.cover && isDriveUrl(project.cover) ? toDriveImage(project.cover) : project.cover;
-  const relatedAll = projects.filter((p) => p.id !== project.id);
-  const sameCat = relatedAll.filter((p) => p.category === project.category);
-  const others = relatedAll.filter((p) => p.category !== project.category);
-  const related = [...sameCat, ...others].slice(0, 8);
+
+  // Split PDF blocks out of the flow: they get a dedicated flipbook section at the end.
+  const rawBlocks = project.blocks ?? [];
+  const pdfBlocks = rawBlocks.filter((b) => b.type === "pdf" && b.url) as Extract<LayoutBlock, { type: "pdf" }>[];
+  const flowBlocks = rawBlocks.filter((b) => b.type !== "pdf");
+
+  // The cover is also the opening image of the gallery, not just a header background.
+  const coverAlreadyInFlow = flowBlocks.some(
+    (b) =>
+      (b.type === "image" && b.url === project.cover) ||
+      (b.type === "gallery" && b.urls?.includes(project.cover)) ||
+      (b.type === "text_image" && b.url === project.cover),
+  );
+  const blocks: LayoutBlock[] = project.cover && !coverAlreadyInFlow
+    ? [{ id: newBlockId(), type: "image", url: project.cover, width: "wide" }, ...flowBlocks]
+    : flowBlocks;
 
   return (
     <SiteLayout>
@@ -77,13 +108,31 @@ function ProjectDetail() {
           </div>
         </header>
 
-        {hasBlocks && <ProjectBlocks blocks={project.blocks!} />}
+        {blocks.length > 0 && <ProjectBlocks blocks={blocks} />}
 
-        {/* Clear end-of-project divider so users know related section starts */}
-        <section className="bg-brand text-canvas">
-          <div className="container-x py-16 md:py-24 text-center">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-gold-soft mb-4">Fin du projet</p>
-            <div className="font-serif text-2xl md:text-3xl italic text-gold mb-8">— · —</div>
+        {/* VOIR LE PROJET EN ENTIER — flipbook for documents / reports */}
+        {pdfBlocks.map((b, i) => (
+          <section key={b.id} className="bg-brand text-canvas border-t border-canvas/10">
+            <div className="container-x pt-14 md:pt-20 pb-8 text-center">
+              <p className="eyebrow text-gold-soft mb-4 inline-flex items-center gap-2 justify-center">
+                <BookOpen size={13} />
+                {pdfBlocks.length > 1 ? `Document ${i + 1}` : "Document complet"}
+              </p>
+              <h2 className="font-serif text-3xl md:text-5xl leading-tight">
+                Voir le projet <span className="italic text-gold">en entier</span>
+              </h2>
+              <p className="mt-4 text-sm text-canvas/60 max-w-md mx-auto">
+                {b.caption || "Feuilletez le document page par page — glissez, cliquez sur les coins ou utilisez les flèches."}
+              </p>
+            </div>
+            <div className="h-[78vh] min-h-[520px] md:h-[92vh] w-full pb-8">
+              <Flipbook url={b.url} caption={b.caption} />
+            </div>
+          </section>
+        ))}
+
+        <section className="bg-brand text-canvas border-t border-canvas/10">
+          <div className="container-x py-14 md:py-20 text-center">
             <Link to="/contact" className="inline-flex items-center gap-2 bg-gold text-brand px-6 py-3 font-medium hover:bg-gold-soft">
               Démarrer un projet similaire <ArrowUpRight size={16} />
             </Link>
@@ -95,6 +144,9 @@ function ProjectDetail() {
             <div className="mb-10 md:mb-14">
               <p className="eyebrow mb-3">Continuer l'exploration</p>
               <h2 className="font-serif text-3xl md:text-4xl text-brand">Autres projets</h2>
+              <p className="mt-3 text-sm text-ink-muted max-w-lg">
+                Toutes disciplines confondues — identités, rapports, événements, 3D et vidéo.
+              </p>
             </div>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
               {related.map((p) => (
