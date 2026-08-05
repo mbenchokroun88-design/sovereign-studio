@@ -79,10 +79,14 @@ function ProjectDetail() {
 
   // Flat list of every image in the project — used by the alternative views.
   const allImages: string[] = [];
-  for (const b of blocks) {
-    if (b.type === "image" && b.url && (!b.mockup || b.mockup === "none")) allImages.push(isDriveUrl(b.url) ? toDriveImage(b.url) : b.url);
-    else if (b.type === "gallery") for (const u of b.urls) if (u) allImages.push(isDriveUrl(u) ? toDriveImage(u) : u);
-    else if (b.type === "text_image" && b.url) allImages.push(isDriveUrl(b.url) ? toDriveImage(b.url) : b.url);
+  const push = (u: string) => {
+    if (u) allImages.push(isDriveUrl(u) ? toDriveImage(u) : u);
+  };
+  for (const raw of blocks) {
+    const b = raw as any;
+    if (b.type === "image" && (!b.mockup || b.mockup === "none")) push(b.url);
+    else if (b.type === "gallery") for (const u of b.urls ?? []) push(u);
+    else if (b.type === "text_image") push(b.url);
   }
   const uniqueImages = Array.from(new Set(allImages));
   const viewModes: ViewMode[] = ["custom", "auto", "collage", "mosaic", "random", "gallery"];
