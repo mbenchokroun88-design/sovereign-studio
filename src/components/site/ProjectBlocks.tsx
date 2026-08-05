@@ -125,8 +125,21 @@ function BlockView({ block }: { block: LayoutBlock }) {
       const cols = block.columns === 3 ? "md:grid-cols-3" : "md:grid-cols-2";
       return (
         <section className="py-4 md:py-8">
-          <div className="max-w-6xl mx-auto px-4 md:px-8">
-            <div className={`grid grid-cols-1 ${cols} gap-2 md:gap-3`}>
+          <div className="max-w-6xl mx-auto md:px-8">
+            {/* Mobile: swipeable snap rail */}
+            <div className="md:hidden flex snap-x snap-mandatory overflow-x-auto scrollbar-none gap-3 px-4">
+              {urls.map((u, i) => (
+                <div key={i} className="snap-center shrink-0 w-[86vw] bg-muted grid place-items-center">
+                  <ClickableImg src={resolve(u)} className="w-full h-auto block object-contain" />
+                </div>
+              ))}
+            </div>
+            {urls.length > 1 && (
+              <p className="md:hidden mt-2 px-4 text-[10px] uppercase tracking-[0.25em] text-ink-muted">
+                Glissez → {urls.length} visuels
+              </p>
+            )}
+            <div className={`hidden md:grid grid-cols-1 ${cols} gap-2 md:gap-3`}>
               {urls.map((u, i) => (
                 <div key={i} className="bg-muted overflow-hidden flex items-center justify-center">
                   <ClickableImg src={resolve(u)} className="w-full h-auto block object-contain" />
@@ -134,7 +147,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
               ))}
             </div>
             {block.caption && (
-              <p className="mt-4 text-xs text-ink-muted uppercase tracking-widest text-center">
+              <p className="mt-4 px-4 text-xs text-ink-muted uppercase tracking-widest text-center">
                 {block.caption}
               </p>
             )}
@@ -239,8 +252,8 @@ function BlockView({ block }: { block: LayoutBlock }) {
 
     case "pdf":
       return (
-        <section className="py-8 md:py-14">
-          <div className="max-w-5xl mx-auto px-4 md:px-8 min-h-[70vh]">
+        <section className="py-6 md:py-12 bg-brand">
+          <div className="w-full h-[82svh] md:h-[96vh]">
             <Flipbook url={block.url} caption={block.caption} />
           </div>
         </section>
