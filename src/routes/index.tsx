@@ -12,7 +12,7 @@ import heroImg from "@/assets/hero.jpg";
 import { useEffect, useState } from "react";
 import { useHeroSlides } from "@/lib/store/hero";
 import { useClients } from "@/lib/store/clients";
-import { HeroShowcase } from "@/components/site/HeroShowcase";
+import { HeroMinimal } from "@/components/site/HeroMinimal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -72,7 +72,7 @@ function Index() {
   return (
     <SiteLayout>
       {/* HERO — editorial split showcase */}
-      <HeroShowcase
+      <HeroMinimal
         slides={activeSlides}
         index={slideIndex}
         setIndex={setSlideIndex}
