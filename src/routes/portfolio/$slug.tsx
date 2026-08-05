@@ -170,7 +170,7 @@ function ProjectDetail() {
                 {b.caption || "Feuilletez le document page par page — glissez, cliquez sur les coins ou utilisez les flèches."}
               </p>
             </div>
-            <div className="h-[78vh] min-h-[520px] md:h-[92vh] w-full pb-8">
+            <div className="h-[82svh] min-h-[440px] md:h-[100vh] w-full pb-6">
               <Flipbook url={b.url} caption={b.caption} />
             </div>
           </section>
