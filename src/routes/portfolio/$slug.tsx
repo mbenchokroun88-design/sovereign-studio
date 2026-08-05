@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import {
@@ -12,6 +12,11 @@ import {
 } from "@/lib/store/projects";
 import { ProjectBlocks } from "@/components/site/ProjectBlocks";
 import { Flipbook } from "@/components/site/Flipbook";
+import {
+  ProjectImageLayouts,
+  VIEW_LABELS,
+  type ViewMode,
+} from "@/components/site/ProjectImageLayouts";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -32,6 +37,7 @@ function ProjectDetail() {
   const { slug } = Route.useParams();
   const { projects, getBySlug, isLoading } = useProjects();
   const project = getBySlug(slug);
+  const [view, setView] = useState<ViewMode>("custom");
 
   // Related: all categories, shuffled — so a report visitor also discovers events, 3D, video…
   const related = useMemo(() => {
@@ -71,6 +77,16 @@ function ProjectDetail() {
     ? [{ id: newBlockId(), type: "image", url: project.cover, width: "wide" }, ...flowBlocks]
     : flowBlocks;
 
+  // Flat list of every image in the project — used by the alternative views.
+  const allImages: string[] = [];
+  for (const b of blocks) {
+    if (b.type === "image" && b.url && (!b.mockup || b.mockup === "none")) allImages.push(isDriveUrl(b.url) ? toDriveImage(b.url) : b.url);
+    else if (b.type === "gallery") for (const u of b.urls) if (u) allImages.push(isDriveUrl(u) ? toDriveImage(u) : u);
+    else if (b.type === "text_image" && b.url) allImages.push(isDriveUrl(b.url) ? toDriveImage(b.url) : b.url);
+  }
+  const uniqueImages = Array.from(new Set(allImages));
+  const viewModes: ViewMode[] = ["custom", "auto", "collage", "mosaic", "random", "gallery"];
+
   return (
     <SiteLayout>
       <article>
@@ -78,16 +94,16 @@ function ProjectDetail() {
         <header className="relative bg-brand text-canvas overflow-hidden">
           {cover && (
             <div className="absolute inset-0">
-              <img src={cover} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand via-brand/60 to-brand/20" />
-              <div className="absolute inset-0 bg-gradient-to-r from-brand/70 via-transparent to-transparent" />
+              <img src={cover} alt="" className="w-full h-full object-cover opacity-25" />
+              <div className="absolute inset-0 bg-brand/70" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand via-brand/70 to-brand/50" />
             </div>
           )}
-          <div className="relative container-x pt-10 pb-20 md:pt-16 md:pb-32 min-h-[70vh] flex flex-col justify-between">
+          <div className="relative container-x pt-8 pb-14 md:pt-16 md:pb-28 min-h-[52svh] md:min-h-[62vh] flex flex-col justify-between">
             <Link to="/portfolio" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-gold hover:text-gold-soft w-fit">
               <ArrowLeft size={14} /> Retour à l'index
             </Link>
-            <div className="mt-16 md:mt-24 max-w-5xl">
+            <div className="mt-12 md:mt-24 max-w-5xl">
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 <span className="text-[10px] uppercase tracking-[0.25em] text-gold-soft bg-brand/40 backdrop-blur px-3 py-1.5 border border-gold/30">
                   {CATEGORY_LABELS[project.category]}
@@ -96,11 +112,11 @@ function ProjectDetail() {
                   <span className="text-[10px] uppercase tracking-[0.25em] text-canvas/70">{project.year}</span>
                 )}
               </div>
-              <h1 className="font-serif text-4xl sm:text-6xl md:text-8xl leading-[0.9] tracking-tight text-balance">
+              <h1 className="font-serif text-[10vw] sm:text-6xl md:text-8xl leading-[0.92] tracking-tight text-balance">
                 {project.title}
               </h1>
               {project.client && (
-                <p className="mt-8 text-lg md:text-xl text-canvas/80 font-light">
+                <p className="mt-6 md:mt-8 text-base md:text-xl text-canvas/80 font-light">
                   Pour <span className="italic text-gold">{project.client}</span>
                 </p>
               )}
@@ -108,7 +124,32 @@ function ProjectDetail() {
           </div>
         </header>
 
-        {blocks.length > 0 && <ProjectBlocks blocks={blocks} />}
+        {/* VIEW SWITCHER */}
+        {uniqueImages.length > 1 && (
+          <div className="bg-white border-b border-brand/10 sticky top-0 z-30">
+            <div className="max-w-6xl mx-auto px-3 md:px-8 py-3 flex gap-2 overflow-x-auto scrollbar-none">
+              {viewModes.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setView(m)}
+                  className={`shrink-0 text-[10px] md:text-[11px] uppercase tracking-[0.2em] px-3 py-2 border transition-colors ${
+                    view === m
+                      ? "bg-brand text-canvas border-brand"
+                      : "border-brand/20 text-ink-muted hover:border-brand/60 hover:text-brand"
+                  }`}
+                >
+                  {VIEW_LABELS[m]}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {view === "custom" || uniqueImages.length <= 1 ? (
+          blocks.length > 0 && <ProjectBlocks blocks={blocks} />
+        ) : (
+          <ProjectImageLayouts images={uniqueImages} mode={view} />
+        )}
 
         {/* VOIR LE PROJET EN ENTIER — flipbook for documents / reports */}
         {pdfBlocks.map((b, i) => (
