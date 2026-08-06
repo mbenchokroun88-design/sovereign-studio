@@ -3,6 +3,9 @@ import { useMemo } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProjectCard } from "@/components/site/ProjectCard";
 import { CATEGORY_LABELS, useProjects, type ProjectCategory, type Project } from "@/lib/store/projects";
+import { PageSections } from "@/components/site/PageSections";
+import { PAGE_DEFAULT_ORDER } from "@/lib/store/pages";
+import { useSiteSettings, sortProjects } from "@/lib/store/settings";
 
 export const Route = createFileRoute("/portfolio/")({
   head: () => ({
@@ -18,27 +21,29 @@ export const Route = createFileRoute("/portfolio/")({
 
 function Portfolio() {
   const { projects } = useProjects();
+  const { settings } = useSiteSettings();
   const grouped = useMemo(() => {
     const order = Object.keys(CATEGORY_LABELS) as ProjectCategory[];
     const map = new Map<ProjectCategory, Project[]>();
-    for (const p of projects) {
+    for (const p of sortProjects(projects, settings.chronological)) {
       if (!map.has(p.category)) map.set(p.category, []);
       map.get(p.category)!.push(p);
     }
     return order
       .filter((c) => map.has(c))
       .map((c) => [c, map.get(c)!] as const);
-  }, [projects]);
+  }, [projects, settings.chronological]);
 
-  return (
-    <SiteLayout>
+  const modules: Record<string, React.ReactNode> = {
+    header: (
       <section className="container-x pt-16 md:pt-24 pb-12">
         <p className="eyebrow mb-4">Index</p>
         <h1 className="font-serif text-5xl md:text-7xl text-brand leading-tight text-balance max-w-3xl">
           Portfolio <span className="italic text-gold">complet</span>
         </h1>
       </section>
-
+    ),
+    index: (
       <section className="container-x py-12 md:py-20">
         {grouped.length === 0 ? (
           <p className="text-center text-ink-muted py-24">Aucun projet pour le moment.</p>
@@ -58,6 +63,12 @@ function Portfolio() {
           </div>
         )}
       </section>
+    ),
+  };
+
+  return (
+    <SiteLayout>
+      <PageSections page="portfolio" modules={modules} defaultOrder={PAGE_DEFAULT_ORDER.portfolio} />
     </SiteLayout>
   );
 }
