@@ -14,10 +14,30 @@ async function loadPdfJs() {
   return pdfjsLib;
 }
 
+export type FlipSizeOpt = "sm" | "md" | "lg" | "xl";
+export type FlipAnimationOpt = "soft" | "normal" | "snappy";
+
 interface FlipbookProps {
   url: string;
   caption?: string;
+  /** Taille du livre à l'écran */
+  size?: FlipSizeOpt;
+  /** Caractère de l'animation de page */
+  animation?: FlipAnimationOpt;
 }
+
+const SIZE_FACTOR: Record<FlipSizeOpt, { h: number; w: number }> = {
+  sm: { h: 0.62, w: 0.7 },
+  md: { h: 0.76, w: 0.84 },
+  lg: { h: 0.9, w: 0.96 },
+  xl: { h: 0.98, w: 1 },
+};
+
+const ANIM: Record<FlipAnimationOpt, { time: number; shadow: number }> = {
+  soft: { time: 1300, shadow: 0.4 },
+  normal: { time: 900, shadow: 0.55 },
+  snappy: { time: 550, shadow: 0.65 },
+};
 
 /** A single leaf of the book. Blank leaves keep the spread even so the book closes centred. */
 const Page = forwardRef<HTMLDivElement, { src?: string | null }>(({ src }, ref) => (
@@ -39,7 +59,7 @@ const Page = forwardRef<HTMLDivElement, { src?: string | null }>(({ src }, ref) 
 ));
 Page.displayName = "Page";
 
-export function Flipbook({ url, caption }: FlipbookProps) {
+export function Flipbook({ url, caption, size = "lg", animation = "normal" }: FlipbookProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
   const [pages, setPages] = useState<(string | null)[]>([]);
@@ -131,8 +151,9 @@ export function Flipbook({ url, caption }: FlipbookProps) {
 
   // Sizing: the book owns the page. Portrait (single, centred) on phones, spread on desktop.
   const isMobile = vp.w < 900;
-  const maxH = Math.min(vp.h * (isMobile ? 0.74 : 0.9), 1250);
-  const maxW = vp.w * (isMobile ? 0.94 : 0.96);
+  const factor = SIZE_FACTOR[size] ?? SIZE_FACTOR.lg;
+  const maxH = Math.min(vp.h * (isMobile ? Math.min(factor.h, 0.8) : factor.h), 1400);
+  const maxW = vp.w * (isMobile ? 0.94 : factor.w);
   const spreadFactor = isMobile ? 1 : 2;
   const byHeight = maxH * aspect * spreadFactor;
   const spreadW = Math.min(byHeight, maxW);
@@ -167,12 +188,12 @@ export function Flipbook({ url, caption }: FlipbookProps) {
               width={pageWidth}
               height={pageHeight}
               size="fixed"
-              maxShadowOpacity={0.55}
+              maxShadowOpacity={ANIM[animation].shadow}
               showCover
               usePortrait={isMobile}
               mobileScrollSupport={false}
               drawShadow
-              flippingTime={900}
+              flippingTime={ANIM[animation].time}
               startZIndex={10}
               autoSize={false}
               useMouseEvents
