@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, BookOpen, Box, Clapperboard, Layers, MonitorSmartphone, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import portrait from "@/assets/portrait.jpg";
+import { PageSections } from "@/components/site/PageSections";
+import { PAGE_DEFAULT_ORDER } from "@/lib/store/pages";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -25,8 +27,8 @@ const DISCIPLINES = [
 ];
 
 function About() {
-  return (
-    <SiteLayout>
+  const modules: Record<string, React.ReactNode> = {
+    header: (
       <section className="container-x pt-16 md:pt-24 pb-16">
         <div className="grid md:grid-cols-2 gap-12 items-end">
           <div>
@@ -42,7 +44,8 @@ function About() {
           </div>
         </div>
       </section>
-
+    ),
+    profile: (
       <section className="bg-white border-y border-border">
         <div className="container-x py-16 md:py-20 grid md:grid-cols-5 gap-12 items-center">
           <div className="md:col-span-2">
@@ -72,8 +75,8 @@ function About() {
           </div>
         </div>
       </section>
-
-      {/* DISCIPLINES */}
+    ),
+    disciplines: (
       <section className="container-x py-20 md:py-28">
         <div className="flex items-end justify-between mb-10 border-b border-brand/15 pb-4">
           <div>
@@ -96,7 +99,8 @@ function About() {
           ))}
         </div>
       </section>
-
+    ),
+    clients: (
       <section className="bg-brand text-canvas">
         <div className="container-x py-20">
           <p className="eyebrow text-gold-soft mb-6">Clients sélectionnés</p>
@@ -122,6 +126,12 @@ function About() {
           </div>
         </div>
       </section>
+    ),
+  };
+
+  return (
+    <SiteLayout>
+      <PageSections page="studio" modules={modules} defaultOrder={PAGE_DEFAULT_ORDER.studio} />
     </SiteLayout>
   );
 }
