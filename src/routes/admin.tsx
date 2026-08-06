@@ -102,7 +102,7 @@ function Admin() {
   const [creating, setCreating] = useState(false);
   const [eventTemplate, setEventTemplate] = useState<Draft | null>(null);
   const [smartImporting, setSmartImporting] = useState(false);
-  const [tab, setTab] = useState<"projects" | "hero" | "clients">("projects");
+  const [tab, setTab] = useState<"projects" | "hero" | "clients" | "pages" | "settings">("projects");
   const [migratingId, setMigratingId] = useState<string | null>(null);
   const [migratingAll, setMigratingAll] = useState(false);
   const migrateProject = useServerFn(migrateProjectMedia);
@@ -199,6 +199,8 @@ function Admin() {
             { id: "projects" as const, label: "Projets" },
             { id: "hero" as const, label: "Slider d'accueil" },
             { id: "clients" as const, label: "Clients" },
+            { id: "pages" as const, label: "Pages" },
+            { id: "settings" as const, label: "Réglages" },
           ].map((t) => (
             <button
               key={t.id}
@@ -298,6 +300,8 @@ function Admin() {
 
       {tab === "hero" && <HeroAdmin />}
       {tab === "clients" && <ClientsAdmin />}
+      {tab === "pages" && <PagesAdmin />}
+      {tab === "settings" && <SettingsAdmin />}
 
       {(editing || creating || eventTemplate) && (
         <ProjectEditor
@@ -872,5 +876,187 @@ function ClientRowEditor({ client, mode, onUpdate, onDelete }: { client: ClientR
       <button disabled={!dirty} onClick={async () => { await onUpdate(draft); toast.success("Enregistré"); }} className="text-xs px-3 py-1.5 bg-brand text-brand-foreground hover:bg-gold hover:text-brand disabled:opacity-40">Save</button>
       <button onClick={onDelete} className="text-xs px-2 py-1.5 text-destructive hover:underline"><Trash2 size={14} /></button>
     </div>
+  );
+}
+// ============ RÉGLAGES D'AFFICHAGE PAR PROJET ============
+function ProjectSettingsPanel({
+  settings,
+  onChange,
+}: {
+  settings: ProjectSettings;
+  onChange: (s: Partial<ProjectSettings>) => void;
+}) {
+  const s = { ...DEFAULT_PROJECT_SETTINGS, ...settings };
+  const views: ProjectViewName[] = ["custom", "auto", "collage", "mosaic", "random", "gallery"];
+  return (
+    <div className="border border-border bg-white p-4 space-y-4">
+      <p className="eyebrow">Affichage de ce projet</p>
+      <Row>
+        <Field label="Version ordinateur" help="Rendu par défaut sur grand écran">
+          <select
+            value={s.view}
+            onChange={(e) => onChange({ view: e.target.value as ProjectViewName })}
+            className="form-input"
+          >
+            {views.map((v) => (
+              <option key={v} value={v}>{VIEW_LABELS[v]}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Version mobile" help="Rendu par défaut sur téléphone">
+          <select
+            value={s.viewMobile}
+            onChange={(e) => onChange({ viewMobile: e.target.value as ProjectViewName })}
+            className="form-input"
+          >
+            {views.map((v) => (
+              <option key={v} value={v}>{VIEW_LABELS[v]}</option>
+            ))}
+          </select>
+        </Field>
+      </Row>
+      <Row>
+        <Field label="Taille du flipbook PDF">
+          <select
+            value={s.flipSize}
+            onChange={(e) => onChange({ flipSize: e.target.value as FlipSize })}
+            className="form-input"
+          >
+            <option value="sm">Compact</option>
+            <option value="md">Moyen</option>
+            <option value="lg">Grand</option>
+            <option value="xl">Plein écran</option>
+          </select>
+        </Field>
+        <Field label="Animation des pages">
+          <select
+            value={s.flipAnimation}
+            onChange={(e) => onChange({ flipAnimation: e.target.value as FlipAnimation })}
+            className="form-input"
+          >
+            <option value="soft">Douce & lente</option>
+            <option value="normal">Naturelle</option>
+            <option value="snappy">Vive & rapide</option>
+          </select>
+        </Field>
+      </Row>
+      <div className="flex flex-wrap gap-6">
+        <label className="inline-flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={!!s.allowViewSwitch}
+            onChange={(e) => onChange({ allowViewSwitch: e.target.checked })}
+          />
+          Laisser le visiteur changer d'affichage
+        </label>
+        <label className="inline-flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={!!s.showSummary}
+            onChange={(e) => onChange({ showSummary: e.target.checked })}
+          />
+          Afficher le descriptif court
+        </label>
+      </div>
+    </div>
+  );
+}
+
+// ============ PAGES (mode Elementor) ============
+function PagesAdmin() {
+  const { layouts, save, reset } = usePageLayouts();
+  const [page, setPage] = useState<PageKey>("home");
+  const layout = layouts.find((l) => l.page === page);
+  const blocks = layout?.blocks ?? [];
+  const enabled = !!layout?.enabled;
+
+  async function start() {
+    await save(page, {
+      enabled: true,
+      blocks: PAGE_DEFAULT_ORDER[page].map((m) => ({ id: newBlockId(), type: "module" as const, module: m })),
+    });
+    toast.success("Mise en page personnalisée créée");
+  }
+
+  return (
+    <section className="container-x py-10 space-y-6">
+      <div className="flex gap-1 flex-wrap">
+        {(Object.keys(PAGE_LABELS) as PageKey[]).map((k) => (
+          <button
+            key={k}
+            onClick={() => setPage(k)}
+            className={`px-4 py-2 text-xs uppercase tracking-widest border ${
+              page === k ? "bg-brand text-brand-foreground border-brand" : "border-border text-ink-muted hover:border-gold"
+            }`}
+          >
+            {PAGE_LABELS[k]}
+          </button>
+        ))}
+      </div>
+
+      <p className="text-sm text-ink-muted max-w-2xl">
+        Réordonnez, supprimez ou ajoutez des sections sur la page « {PAGE_LABELS[page]} ». Sans mise en page
+        personnalisée, l'ordre d'origine est utilisé.
+      </p>
+
+      {!enabled ? (
+        <button
+          onClick={start}
+          className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-5 py-3 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
+        >
+          <Plus size={14} /> Personnaliser cette page
+        </button>
+      ) : (
+        <>
+          <BlockBuilder
+            blocks={blocks}
+            modules={PAGE_MODULES[page]}
+            onChange={(next: LayoutBlock[]) => save(page, { blocks: next, enabled: true })}
+          />
+          <div className="flex gap-3">
+            <button
+              onClick={async () => {
+                await reset(page);
+                toast.success("Mise en page réinitialisée");
+              }}
+              className="px-4 py-2 text-xs uppercase tracking-widest border border-border hover:border-gold"
+            >
+              Revenir à la mise en page d'origine
+            </button>
+          </div>
+        </>
+      )}
+      <style>{`
+        .form-input { width: 100%; background: white; border: 1px solid var(--rule); padding: 0.625rem 0.75rem; font-size: 0.875rem; color: var(--ink); outline: none; }
+        .form-input:focus { border-color: var(--gold); }
+      `}</style>
+    </section>
+  );
+}
+
+// ============ RÉGLAGES GLOBAUX ============
+function SettingsAdmin() {
+  const { settings, save } = useSiteSettings();
+  return (
+    <section className="container-x py-10 max-w-2xl space-y-6">
+      <p className="eyebrow">Réglages du site</p>
+      <label className="flex items-start gap-3 border border-border bg-white p-4">
+        <input
+          type="checkbox"
+          checked={!!settings.chronological}
+          onChange={async (e) => {
+            await save({ chronological: e.target.checked });
+            toast.success("Réglage enregistré");
+          }}
+          className="mt-1"
+        />
+        <span>
+          <span className="block text-sm text-brand font-medium">Classement chronologique descendant</span>
+          <span className="block text-xs text-ink-muted mt-1">
+            Affiche les projets et événements du plus récent au plus ancien (selon l'année).
+          </span>
+        </span>
+      </label>
+    </section>
   );
 }
