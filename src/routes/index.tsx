@@ -110,9 +110,8 @@ function Index() {
           ))}
         </div>
       </section>
-
-
-      {/* SELECTED WORKS — editorial grid */}
+    ),
+    works: (
       <section className="container-x py-20 md:py-28">
         <div className="flex items-end justify-between mb-10 md:mb-14 border-b border-brand/15 pb-4">
           <div>
@@ -163,8 +162,8 @@ function Index() {
           </Link>
         </div>
       </section>
-
-      {/* CONTACT CTA */}
+    ),
+    cta: (
       <section className="container-x py-24 md:py-32 text-center border-t border-border">
         <p className="eyebrow mb-4">Disponibilité</p>
         <h2 className="font-serif text-4xl md:text-6xl text-brand leading-tight tracking-tight text-balance max-w-3xl mx-auto">
@@ -180,6 +179,12 @@ function Index() {
           Démarrer un projet <ArrowRight size={16} />
         </Link>
       </section>
+    ),
+  };
+
+  return (
+    <SiteLayout>
+      <PageSections page="home" modules={modules} defaultOrder={PAGE_DEFAULT_ORDER.home} />
     </SiteLayout>
   );
 }
