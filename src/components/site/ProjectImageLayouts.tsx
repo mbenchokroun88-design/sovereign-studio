@@ -84,9 +84,9 @@ export function ProjectImageLayouts({ images, mode }: { images: string[]; mode: 
           return (
             <div
               key={i}
-              className={`bg-muted overflow-hidden ${big ? "col-span-2 row-span-2" : ""} ${tall ? "row-span-2" : ""}`}
+              className={`bg-muted overflow-hidden grid place-items-center ${big ? "col-span-2 row-span-2" : ""} ${tall ? "row-span-2" : ""}`}
             >
-              <Img src={u} i={i} className="w-full h-full object-cover" />
+              <Img src={u} i={i} className="w-full h-full object-contain" />
             </div>
           );
         })}

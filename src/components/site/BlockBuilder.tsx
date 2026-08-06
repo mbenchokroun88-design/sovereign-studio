@@ -26,6 +26,7 @@ import {
   Upload,
   Loader2,
   Columns,
+  LayoutTemplate,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,15 +97,21 @@ const BLOCK_MENU: { type: BlockType; label: string; icon: any; make: () => Layou
 export function BlockBuilder({
   blocks,
   onChange,
+  modules,
 }: {
   blocks: LayoutBlock[];
   onChange: (next: LayoutBlock[]) => void;
+  /** Sections natives disponibles (mode page) */
+  modules?: { key: string; label: string }[];
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   function add(type: BlockType) {
     const item = BLOCK_MENU.find((b) => b.type === type)!.make();
     onChange([...blocks, item]);
+  }
+  function addModule(key: string) {
+    onChange([...blocks, { id: newBlockId(), type: "module", module: key }]);
   }
   function update(i: number, patch: Partial<LayoutBlock>) {
     const next = [...blocks];
@@ -148,6 +155,25 @@ export function BlockBuilder({
             );
           })}
         </div>
+        {modules && modules.length > 0 && (
+          <>
+            <p className="text-[10px] uppercase tracking-widest text-gold mt-4 mb-2">
+              Sections natives de la page
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {modules.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => addModule(m.key)}
+                  className="inline-flex items-center gap-1.5 bg-gold/20 hover:bg-gold hover:text-brand text-canvas px-3 py-1.5 text-[11px] uppercase tracking-widest transition-colors"
+                >
+                  <LayoutTemplate size={12} /> + {m.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {blocks.length === 0 ? (
@@ -162,6 +188,7 @@ export function BlockBuilder({
                 <SortableBlock
                   key={b.id}
                   block={b}
+                  modules={modules}
                   onChange={(p) => update(i, p)}
                   onRemove={() => remove(i)}
                 />
@@ -178,10 +205,12 @@ function SortableBlock({
   block,
   onChange,
   onRemove,
+  modules,
 }: {
   block: LayoutBlock;
   onChange: (p: Partial<LayoutBlock>) => void;
   onRemove: () => void;
+  modules?: { key: string; label: string }[];
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
@@ -210,7 +239,9 @@ function SortableBlock({
             <GripVertical size={16} />
           </button>
           <span className="text-[10px] uppercase tracking-widest text-brand font-semibold">
-            {labelFor(block.type)}
+            {block.type === "module"
+              ? `Section · ${modules?.find((m) => m.key === block.module)?.label ?? block.module}`
+              : labelFor(block.type)}
           </span>
         </div>
         <button
@@ -222,7 +253,14 @@ function SortableBlock({
         </button>
       </div>
       <div className="p-3">
-        <BlockEditor block={block} onChange={onChange} />
+        {block.type === "module" ? (
+          <p className="text-xs text-ink-muted">
+            Section native — son contenu se gère ailleurs (projets, clients, formulaire…). Déplacez-la ou
+            retirez-la pour changer la page.
+          </p>
+        ) : (
+          <BlockEditor block={block} onChange={onChange} />
+        )}
       </div>
     </div>
   );
@@ -272,6 +310,8 @@ function BlockEditor({
           ))}
         </div>
       );
+    default:
+      return null;
   }
 }
 
@@ -284,6 +324,12 @@ function ImageEditor({
 }) {
   return (
     <div className="space-y-2">
+      <input
+        value={block.title || ""}
+        onChange={(e) => onChange({ title: e.target.value })}
+        placeholder="Titre de la section (optionnel) — ex. Roll-up & photocall"
+        className="form-input"
+      />
       <div className="flex gap-2">
         <input
           value={block.url}
@@ -349,9 +395,13 @@ function ImageEditor({
         placeholder="Légende (optionnel)"
         className="form-input"
       />
+      <label className="flex items-center gap-2 text-xs text-ink-muted">
+        <input type="checkbox" checked={!!block.crop} onChange={(e) => onChange({ crop: e.target.checked })} />
+        Recadrer l'image (sinon elle est toujours affichée en entier)
+      </label>
       {block.url && (
         <div className="mt-2 max-h-48 overflow-hidden bg-muted">
-          <img src={block.url} alt="" className="w-full h-auto object-cover" />
+          <img src={block.url} alt="" className="w-full h-auto object-contain" />
         </div>
       )}
     </div>
@@ -372,6 +422,12 @@ function GalleryEditor({
   }
   return (
     <div className="space-y-2">
+      <input
+        value={block.title || ""}
+        onChange={(e) => onChange({ title: e.target.value })}
+        placeholder="Titre de la section (optionnel)"
+        className="form-input"
+      />
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[10px] uppercase tracking-widest text-ink-muted">Rendu :</span>
         {(["grid", "cinematic"] as const).map((v) => (
@@ -446,6 +502,10 @@ function GalleryEditor({
         placeholder="Légende (optionnel)"
         className="form-input"
       />
+      <label className="flex items-center gap-2 text-xs text-ink-muted">
+        <input type="checkbox" checked={!!block.crop} onChange={(e) => onChange({ crop: e.target.checked })} />
+        Recadrer les images en grille (sinon elles restent complètes)
+      </label>
     </div>
   );
 }

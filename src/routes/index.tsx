@@ -12,7 +12,10 @@ import heroImg from "@/assets/hero.jpg";
 import { useEffect, useState } from "react";
 import { useHeroSlides } from "@/lib/store/hero";
 import { useClients } from "@/lib/store/clients";
-import { HeroMinimal } from "@/components/site/HeroMinimal";
+import { HeroSplit } from "@/components/site/HeroSplit";
+import { PageSections } from "@/components/site/PageSections";
+import { PAGE_DEFAULT_ORDER, PAGE_MODULES } from "@/lib/store/pages";
+import { useSiteSettings, sortProjects } from "@/lib/store/settings";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -59,7 +62,8 @@ function Index() {
   const { projects } = useProjects();
   const { slides } = useHeroSlides();
   const { clients } = useClients();
-  const worksGrid = projects.slice(0, 12);
+  const { settings } = useSiteSettings();
+  const worksGrid = sortProjects(projects, settings.chronological).slice(0, 12);
   const activeSlides = slides.filter((s) => s.visible);
   const [slideIndex, setSlideIndex] = useState(0);
   useEffect(() => {
@@ -69,17 +73,16 @@ function Index() {
   }, [activeSlides.length]);
   const currentSlide = activeSlides[slideIndex];
 
-  return (
-    <SiteLayout>
-      {/* HERO — editorial split showcase */}
-      <HeroMinimal
+  const modules: Record<string, React.ReactNode> = {
+    hero: (
+      <HeroSplit
         slides={activeSlides}
         index={slideIndex}
         setIndex={setSlideIndex}
         fallbackImg={heroImg}
       />
-
-      {/* CLIENTS MARQUEE — below hero */}
+    ),
+    clients: (
       <section className="bg-brand text-canvas border-y border-canvas/10">
         <div className="container-x flex items-center justify-between py-3">
           <span className="eyebrow text-canvas/50 m-0">Ils nous font confiance</span>
@@ -107,9 +110,8 @@ function Index() {
           ))}
         </div>
       </section>
-
-
-      {/* SELECTED WORKS — editorial grid */}
+    ),
+    works: (
       <section className="container-x py-20 md:py-28">
         <div className="flex items-end justify-between mb-10 md:mb-14 border-b border-brand/15 pb-4">
           <div>
@@ -160,8 +162,8 @@ function Index() {
           </Link>
         </div>
       </section>
-
-      {/* CONTACT CTA */}
+    ),
+    cta: (
       <section className="container-x py-24 md:py-32 text-center border-t border-border">
         <p className="eyebrow mb-4">Disponibilité</p>
         <h2 className="font-serif text-4xl md:text-6xl text-brand leading-tight tracking-tight text-balance max-w-3xl mx-auto">
@@ -177,6 +179,12 @@ function Index() {
           Démarrer un projet <ArrowRight size={16} />
         </Link>
       </section>
+    ),
+  };
+
+  return (
+    <SiteLayout>
+      <PageSections page="home" modules={modules} defaultOrder={PAGE_DEFAULT_ORDER.home} />
     </SiteLayout>
   );
 }

@@ -89,6 +89,27 @@ export type Database = {
         }
         Relationships: []
       }
+      page_layouts: {
+        Row: {
+          blocks: Json
+          enabled: boolean
+          page: string
+          updated_at: string
+        }
+        Insert: {
+          blocks?: Json
+          enabled?: boolean
+          page: string
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          enabled?: boolean
+          page?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           blocks: Json
@@ -101,6 +122,7 @@ export type Database = {
           id: string
           media: Json
           position: number
+          settings: Json
           slug: string
           summary: string
           tags: string[]
@@ -119,6 +141,7 @@ export type Database = {
           id?: string
           media?: Json
           position?: number
+          settings?: Json
           slug: string
           summary?: string
           tags?: string[]
@@ -137,12 +160,31 @@ export type Database = {
           id?: string
           media?: Json
           position?: number
+          settings?: Json
           slug?: string
           summary?: string
           tags?: string[]
           title?: string
           updated_at?: string
           year?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
       }

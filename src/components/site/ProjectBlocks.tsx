@@ -75,7 +75,13 @@ function BlockView({ block }: { block: LayoutBlock }) {
       ) : (
         <>
           {src ? (
-            <ClickableImg src={src} alt={block.caption} className="w-full h-auto block object-contain" />
+            block.crop ? (
+              <div className="w-full aspect-[16/9] overflow-hidden bg-muted">
+                <ClickableImg src={src} alt={block.caption} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <ClickableImg src={src} alt={block.caption} className="w-full h-auto block object-contain" />
+            )
           ) : (
             <div className="w-full aspect-[16/9] bg-muted grid place-items-center text-ink-muted text-xs">
               (image manquante)
@@ -89,18 +95,29 @@ function BlockView({ block }: { block: LayoutBlock }) {
         </>
       );
       if (block.width === "full") {
-        return <section className="py-2 md:py-4 px-2 md:px-0">{inner}</section>;
+        return (
+          <section className="py-2 md:py-4 px-2 md:px-0">
+            <SectionTitle title={block.title} />
+            {inner}
+          </section>
+        );
       }
       if (block.width === "wide") {
         return (
           <section className="py-3 md:py-6">
-            <div className="max-w-6xl mx-auto px-4 md:px-8">{inner}</div>
+            <div className="max-w-6xl mx-auto px-4 md:px-8">
+              <SectionTitle title={block.title} />
+              {inner}
+            </div>
           </section>
         );
       }
       return (
         <section className="py-4 md:py-8 bg-canvas">
-          <div className="max-w-4xl mx-auto px-4 md:px-8">{inner}</div>
+          <div className="max-w-4xl mx-auto px-4 md:px-8">
+            <SectionTitle title={block.title} />
+            {inner}
+          </div>
         </section>
       );
     }
@@ -112,6 +129,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
         return (
           <section className="py-4 md:py-8">
             <div className="max-w-6xl mx-auto px-2 md:px-8">
+              <SectionTitle title={block.title} />
               <CinematicCarousel media={items} onOpen={() => {}} />
               {block.caption && (
                 <p className="mt-4 text-xs text-ink-muted uppercase tracking-widest text-center">
@@ -126,6 +144,9 @@ function BlockView({ block }: { block: LayoutBlock }) {
       return (
         <section className="py-4 md:py-8">
           <div className="max-w-6xl mx-auto md:px-8">
+            <div className="px-4 md:px-0">
+              <SectionTitle title={block.title} />
+            </div>
             {/* Mobile: swipeable snap rail */}
             <div className="md:hidden flex snap-x snap-mandatory overflow-x-auto scrollbar-none gap-3 px-4">
               {urls.map((u, i) => (
@@ -141,8 +162,14 @@ function BlockView({ block }: { block: LayoutBlock }) {
             )}
             <div className={`hidden md:grid grid-cols-1 ${cols} gap-2 md:gap-3`}>
               {urls.map((u, i) => (
-                <div key={i} className="bg-muted overflow-hidden flex items-center justify-center">
-                  <ClickableImg src={resolve(u)} className="w-full h-auto block object-contain" />
+                <div
+                  key={i}
+                  className={`bg-muted overflow-hidden flex items-center justify-center ${block.crop ? "aspect-[4/3]" : ""}`}
+                >
+                  <ClickableImg
+                    src={resolve(u)}
+                    className={block.crop ? "w-full h-full object-cover" : "w-full h-auto block object-contain"}
+                  />
                 </div>
               ))}
             </div>
@@ -248,7 +275,16 @@ function BlockView({ block }: { block: LayoutBlock }) {
     }
 
     case "video":
-      return <VideoBlock url={block.url} caption={block.caption} />;
+      return (
+        <>
+          {block.title && (
+            <div className="max-w-6xl mx-auto px-4 md:px-8 pt-8">
+              <SectionTitle title={block.title} />
+            </div>
+          )}
+          <VideoBlock url={block.url} caption={block.caption} />
+        </>
+      );
 
     case "pdf":
       return (
@@ -259,6 +295,9 @@ function BlockView({ block }: { block: LayoutBlock }) {
         </section>
       );
 
+    case "module":
+      return null;
+
     case "spacer": {
       const h = block.size === "lg" ? "h-24 md:h-40" : block.size === "md" ? "h-12 md:h-20" : "h-6 md:h-10";
       return <div className={h} aria-hidden />;
@@ -267,6 +306,16 @@ function BlockView({ block }: { block: LayoutBlock }) {
     default:
       return null;
   }
+}
+
+function SectionTitle({ title }: { title?: string }) {
+  if (!title) return null;
+  return (
+    <div className="mb-4 md:mb-6">
+      <h2 className="font-serif text-2xl md:text-4xl text-brand tracking-tight text-balance">{title}</h2>
+      <span className="mt-3 block h-px w-16 bg-gold" />
+    </div>
+  );
 }
 
 function VideoBlock({ url, caption }: { url: string; caption?: string }) {
