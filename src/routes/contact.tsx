@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { sendContactMessage } from "@/lib/api/contact.functions";
+import { PageSections } from "@/components/site/PageSections";
+import { PAGE_DEFAULT_ORDER } from "@/lib/store/pages";
 
 const CONTACT_EMAIL = "mohamed.benchokroun@gmail.com";
 const CONTACT_PHONE = "+212697953261";
@@ -26,15 +28,16 @@ function Contact() {
   const [sending, setSending] = useState(false);
   const send = useServerFn(sendContactMessage);
 
-  return (
-    <SiteLayout>
+  const modules: Record<string, React.ReactNode> = {
+    header: (
       <section className="container-x pt-16 md:pt-24 pb-16">
         <p className="eyebrow mb-4">Contact</p>
         <h1 className="font-serif text-5xl md:text-7xl text-brand leading-[0.95] tracking-tight text-balance max-w-4xl">
           Discutons de votre <span className="italic text-gold">prochaine mission.</span>
         </h1>
       </section>
-
+    ),
+    form: (
       <section className="container-x pb-24 grid md:grid-cols-5 gap-12">
         <aside className="md:col-span-2 space-y-8">
           <div>
@@ -149,6 +152,12 @@ function Contact() {
           </button>
         </form>
       </section>
+    ),
+  };
+
+  return (
+    <SiteLayout>
+      <PageSections page="contact" modules={modules} defaultOrder={PAGE_DEFAULT_ORDER.contact} />
     </SiteLayout>
   );
 }
