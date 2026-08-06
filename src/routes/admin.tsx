@@ -28,6 +28,16 @@ import { useClients, type ClientRow } from "@/lib/store/clients";
 import { SmartImportModal } from "@/components/site/SmartImportModal";
 import { BlockBuilder } from "@/components/site/BlockBuilder";
 import { newBlockId } from "@/lib/store/projects";
+import {
+  DEFAULT_PROJECT_SETTINGS,
+  type ProjectSettings,
+  type ProjectViewName,
+  type FlipSize,
+  type FlipAnimation,
+} from "@/lib/store/projects";
+import { VIEW_LABELS } from "@/components/site/ProjectImageLayouts";
+import { usePageLayouts, PAGE_LABELS, PAGE_MODULES, PAGE_DEFAULT_ORDER, type PageKey } from "@/lib/store/pages";
+import { useSiteSettings } from "@/lib/store/settings";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
