@@ -2,12 +2,14 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   CATEGORY_LABELS,
   isDriveUrl,
   newBlockId,
   toDriveImage,
   useProjects,
+  DEFAULT_PROJECT_SETTINGS,
   type LayoutBlock,
 } from "@/lib/store/projects";
 import { ProjectBlocks } from "@/components/site/ProjectBlocks";
@@ -37,7 +39,12 @@ function ProjectDetail() {
   const { slug } = Route.useParams();
   const { projects, getBySlug, isLoading } = useProjects();
   const project = getBySlug(slug);
-  const [view, setView] = useState<ViewMode>("custom");
+  const isMobile = useIsMobile();
+  const s = { ...DEFAULT_PROJECT_SETTINGS, ...(project?.settings ?? {}) };
+  const defaultView = ((isMobile ? s.viewMobile : s.view) || "custom") as ViewMode;
+  const [chosen, setChosen] = useState<ViewMode | null>(null);
+  const view = chosen ?? defaultView;
+  const setView = (v: ViewMode) => setChosen(v);
 
   // Related: all categories, shuffled — so a report visitor also discovers events, 3D, video…
   const related = useMemo(() => {
@@ -124,12 +131,17 @@ function ProjectDetail() {
                   Pour <span className="italic text-gold">{project.client}</span>
                 </p>
               )}
+              {s.showSummary && project.summary && (
+                <p className="mt-6 text-sm md:text-base text-canvas/70 max-w-2xl leading-relaxed">
+                  {project.summary}
+                </p>
+              )}
             </div>
           </div>
         </header>
 
         {/* VIEW SWITCHER */}
-        {uniqueImages.length > 1 && (
+        {s.allowViewSwitch && uniqueImages.length > 1 && (
           <div className="bg-white border-b border-brand/10 sticky top-0 z-30">
             <div className="max-w-6xl mx-auto px-3 md:px-8 py-3 flex gap-2 overflow-x-auto scrollbar-none">
               {viewModes.map((m) => (
@@ -171,7 +183,7 @@ function ProjectDetail() {
               </p>
             </div>
             <div className="h-[82svh] min-h-[440px] md:h-[100vh] w-full pb-6">
-              <Flipbook url={b.url} caption={b.caption} />
+              <Flipbook url={b.url} caption={b.caption} size={s.flipSize} animation={s.flipAnimation} />
             </div>
           </section>
         ))}
