@@ -137,7 +137,37 @@ export interface Project {
   blocks?: LayoutBlock[];
   tags?: string[];
   position?: number;
+  settings?: ProjectSettings;
 }
+
+// ---- Réglages d'affichage par projet (choisis dans l'admin) ----
+export type ProjectViewName = "custom" | "auto" | "collage" | "mosaic" | "random" | "gallery";
+export type FlipSize = "sm" | "md" | "lg" | "xl";
+export type FlipAnimation = "soft" | "normal" | "snappy";
+
+export interface ProjectSettings {
+  /** Affichage des images sur ordinateur */
+  view?: ProjectViewName;
+  /** Affichage des images sur mobile */
+  viewMobile?: ProjectViewName;
+  /** Laisser le visiteur changer d'affichage */
+  allowViewSwitch?: boolean;
+  /** Afficher le descriptif court du projet (désactivé par défaut) */
+  showSummary?: boolean;
+  /** Taille du flipbook PDF */
+  flipSize?: FlipSize;
+  /** Vitesse / caractère de l'animation de page */
+  flipAnimation?: FlipAnimation;
+}
+
+export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
+  view: "custom",
+  viewMobile: "gallery",
+  allowViewSwitch: true,
+  showSummary: false,
+  flipSize: "lg",
+  flipAnimation: "normal",
+};
 
 // ============ PAGE BUILDER BLOCKS ============
 export type LayoutBlock =
@@ -146,7 +176,9 @@ export type LayoutBlock =
       type: "image";
       url: string;
       width: "full" | "wide" | "centered";
+      title?: string;
       caption?: string;
+      crop?: boolean;
       mockup?: MockupTemplate | "none";
       mockupViews?: string[];
     }
@@ -155,7 +187,9 @@ export type LayoutBlock =
       type: "gallery";
       urls: string[];
       columns: 2 | 3;
+      title?: string;
       caption?: string;
+      crop?: boolean;
       variant?: "grid" | "cinematic";
     }
   | {
@@ -178,8 +212,9 @@ export type LayoutBlock =
       align?: "left" | "center";
       eyebrow?: string;
     }
-  | { id: string; type: "video"; url: string; caption?: string }
-  | { id: string; type: "pdf"; url: string; caption?: string }
+  | { id: string; type: "video"; url: string; title?: string; caption?: string }
+  | { id: string; type: "pdf"; url: string; title?: string; caption?: string }
+  | { id: string; type: "module"; module: string; title?: string }
   | { id: string; type: "spacer"; size: "sm" | "md" | "lg" };
 
 export function newBlockId() {
@@ -212,6 +247,7 @@ function mapRow(r: any): Project {
     blocks: Array.isArray(r.blocks) ? (r.blocks as LayoutBlock[]) : [],
     tags: Array.isArray(r.tags) ? r.tags : [],
     position: r.position ?? 0,
+    settings: (r.settings && typeof r.settings === "object" ? r.settings : {}) as ProjectSettings,
   };
 }
 
@@ -230,6 +266,7 @@ function toRow(p: Partial<Project>) {
   if ("media" in p) o.media = p.media ?? [];
   if ("blocks" in p) o.blocks = p.blocks ?? [];
   if ("position" in p && p.position !== undefined) o.position = p.position;
+  if ("settings" in p) o.settings = p.settings ?? {};
   return o;
 }
 
