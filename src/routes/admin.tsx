@@ -463,6 +463,11 @@ function ProjectEditor({
           </Field>
 
           {/* PAGE BUILDER */}
+          <ProjectSettingsPanel
+            settings={draft.settings ?? {}}
+            onChange={(s) => patch("settings", { ...(draft.settings ?? {}), ...s })}
+          />
+
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="eyebrow">Composition de la page ({(draft.blocks || []).length} bloc{(draft.blocks || []).length > 1 ? "s" : ""})</p>
