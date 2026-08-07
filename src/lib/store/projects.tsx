@@ -158,6 +158,8 @@ export interface ProjectSettings {
   flipSize?: FlipSize;
   /** Vitesse / caractère de l'animation de page */
   flipAnimation?: FlipAnimation;
+  /** Couleur de fond de la section flipbook (hex) */
+  flipBg?: string;
 }
 
 export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
@@ -167,6 +169,7 @@ export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
   showSummary: false,
   flipSize: "lg",
   flipAnimation: "normal",
+  flipBg: "#0B1F3A",
 };
 
 // ============ PAGE BUILDER BLOCKS ============
@@ -213,7 +216,15 @@ export type LayoutBlock =
       eyebrow?: string;
     }
   | { id: string; type: "video"; url: string; title?: string; caption?: string }
-  | { id: string; type: "pdf"; url: string; title?: string; caption?: string }
+  | { id: string; type: "pdf"; url: string; title?: string; caption?: string; bg?: string }
+  | {
+      id: string;
+      type: "columns";
+      cols: 2 | 3;
+      title?: string;
+      gap?: "sm" | "md" | "lg";
+      children: LayoutBlock[];
+    }
   | { id: string; type: "module"; module: string; title?: string }
   | { id: string; type: "spacer"; size: "sm" | "md" | "lg" };
 

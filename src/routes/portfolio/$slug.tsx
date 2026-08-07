@@ -169,21 +169,35 @@ function ProjectDetail() {
 
         {/* VOIR LE PROJET EN ENTIER — flipbook for documents / reports */}
         {pdfBlocks.map((b, i) => (
-          <section key={b.id} className="bg-brand text-canvas border-t border-canvas/10">
+          <section
+            key={b.id}
+            className="text-canvas border-t border-canvas/10"
+            style={{ background: b.bg || s.flipBg || "var(--brand, #0B1F3A)" }}
+          >
             <div className="container-x pt-14 md:pt-20 pb-8 text-center">
               <p className="eyebrow text-gold-soft mb-4 inline-flex items-center gap-2 justify-center">
                 <BookOpen size={13} />
                 {pdfBlocks.length > 1 ? `Document ${i + 1}` : "Document complet"}
               </p>
               <h2 className="font-serif text-3xl md:text-5xl leading-tight">
-                Voir le projet <span className="italic text-gold">en entier</span>
+                {b.title || (
+                  <>
+                    Voir le projet <span className="italic text-gold">en entier</span>
+                  </>
+                )}
               </h2>
               <p className="mt-4 text-sm text-canvas/60 max-w-md mx-auto">
-                {b.caption || "Feuilletez le document page par page — glissez, cliquez sur les coins ou utilisez les flèches."}
+                {b.caption || "Feuilletez le document page par page — glissez ou touchez la page, où que vous soyez dessus."}
               </p>
             </div>
             <div className="h-[82svh] min-h-[440px] md:h-[100vh] w-full pb-6">
-              <Flipbook url={b.url} caption={b.caption} size={s.flipSize} animation={s.flipAnimation} />
+              <Flipbook
+                url={b.url}
+                caption={b.caption}
+                size={s.flipSize}
+                animation={s.flipAnimation}
+                bg={b.bg || s.flipBg}
+              />
             </div>
           </section>
         ))}

@@ -36,8 +36,17 @@ import {
   type FlipAnimation,
 } from "@/lib/store/projects";
 import { VIEW_LABELS } from "@/components/site/ProjectImageLayouts";
-import { usePageLayouts, PAGE_LABELS, PAGE_MODULES, PAGE_DEFAULT_ORDER, type PageKey } from "@/lib/store/pages";
-import { useSiteSettings } from "@/lib/store/settings";
+import {
+  usePageLayouts,
+  PAGE_LABELS,
+  PAGE_MODULES,
+  PAGE_DEFAULT_ORDER,
+  CUSTOM_PREFIX,
+  isCustomPage,
+  type PageKey,
+  type AnyPageKey,
+} from "@/lib/store/pages";
+import { useSiteSettings, useHeaderSettings, type MenuItem } from "@/lib/store/settings";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -112,7 +121,7 @@ function Admin() {
   const [creating, setCreating] = useState(false);
   const [eventTemplate, setEventTemplate] = useState<Draft | null>(null);
   const [smartImporting, setSmartImporting] = useState(false);
-  const [tab, setTab] = useState<"projects" | "hero" | "clients" | "pages" | "settings">("projects");
+  const [tab, setTab] = useState<"projects" | "hero" | "clients" | "pages" | "identity" | "settings">("projects");
   const [migratingId, setMigratingId] = useState<string | null>(null);
   const [migratingAll, setMigratingAll] = useState(false);
   const migrateProject = useServerFn(migrateProjectMedia);
@@ -210,6 +219,7 @@ function Admin() {
             { id: "hero" as const, label: "Slider d'accueil" },
             { id: "clients" as const, label: "Clients" },
             { id: "pages" as const, label: "Pages" },
+            { id: "identity" as const, label: "En-tête & identité" },
             { id: "settings" as const, label: "Réglages" },
           ].map((t) => (
             <button
@@ -311,6 +321,7 @@ function Admin() {
       {tab === "hero" && <HeroAdmin />}
       {tab === "clients" && <ClientsAdmin />}
       {tab === "pages" && <PagesAdmin />}
+      {tab === "identity" && <IdentityAdmin />}
       {tab === "settings" && <SettingsAdmin />}
 
       {(editing || creating || eventTemplate) && (
@@ -950,6 +961,25 @@ function ProjectSettingsPanel({
           </select>
         </Field>
       </Row>
+      <Row>
+        <Field label="Couleur de fond du flipbook" help="Fond de la section « Voir le projet en entier »">
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={s.flipBg || "#0B1F3A"}
+              onChange={(e) => onChange({ flipBg: e.target.value })}
+              className="h-10 w-16 border border-border bg-white"
+            />
+            <input
+              value={s.flipBg || ""}
+              onChange={(e) => onChange({ flipBg: e.target.value })}
+              placeholder="#0B1F3A"
+              className="form-input"
+            />
+          </div>
+        </Field>
+        <div />
+      </Row>
       <div className="flex flex-wrap gap-6">
         <label className="inline-flex items-center gap-2 text-sm text-ink">
           <input
@@ -975,17 +1005,56 @@ function ProjectSettingsPanel({
 // ============ PAGES (mode Elementor) ============
 function PagesAdmin() {
   const { layouts, save, reset } = usePageLayouts();
-  const [page, setPage] = useState<PageKey>("home");
+  const { settings, save: saveSettings } = useSiteSettings();
+  const customPages = settings.customPages || [];
+  const [page, setPage] = useState<AnyPageKey>("home");
   const layout = layouts.find((l) => l.page === page);
   const blocks = layout?.blocks ?? [];
   const enabled = !!layout?.enabled;
+  const custom = isCustomPage(page);
+  const customMeta = custom ? customPages.find((p) => CUSTOM_PREFIX + p.slug === page) : undefined;
+  const label = custom ? customMeta?.title || page : PAGE_LABELS[page as PageKey];
 
   async function start() {
     await save(page, {
       enabled: true,
-      blocks: PAGE_DEFAULT_ORDER[page].map((m) => ({ id: newBlockId(), type: "module" as const, module: m })),
+      blocks: custom
+        ? []
+        : PAGE_DEFAULT_ORDER[page as PageKey].map((m) => ({ id: newBlockId(), type: "module" as const, module: m })),
     });
     toast.success("Mise en page personnalisée créée");
+  }
+
+  /** Duplique la page courante (ou ses sections d'origine) dans une nouvelle page du site. */
+  async function duplicatePage() {
+    const title = prompt("Nom de la nouvelle page ?", label + " (copie)");
+    if (!title) return;
+    const slug = title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .slice(0, 48);
+    if (!slug) return toast.error("Nom invalide");
+    if (customPages.some((p) => p.slug === slug)) return toast.error("Une page porte déjà ce nom");
+    const source: LayoutBlock[] = (blocks.length ? blocks : []).filter((b) => b.type !== "module");
+    await save(CUSTOM_PREFIX + slug, {
+      enabled: true,
+      blocks: source.map((b) => ({ ...b, id: newBlockId() })) as LayoutBlock[],
+    });
+    await saveSettings({ customPages: [...customPages, { slug, title }] });
+    setPage(CUSTOM_PREFIX + slug);
+    toast.success(`Page « ${title} » créée — /p/${slug}`);
+  }
+
+  async function deleteCustom() {
+    if (!customMeta) return;
+    if (!confirm(`Supprimer la page « ${customMeta.title} » ?`)) return;
+    await reset(page);
+    await saveSettings({ customPages: customPages.filter((p) => p.slug !== customMeta.slug) });
+    setPage("home");
+    toast.success("Page supprimée");
   }
 
   return (
@@ -1002,27 +1071,65 @@ function PagesAdmin() {
             {PAGE_LABELS[k]}
           </button>
         ))}
+        {customPages.map((p) => (
+          <button
+            key={p.slug}
+            onClick={() => setPage(CUSTOM_PREFIX + p.slug)}
+            className={`px-4 py-2 text-xs uppercase tracking-widest border ${
+              page === CUSTOM_PREFIX + p.slug
+                ? "bg-gold text-brand border-gold"
+                : "border-gold/40 text-ink-muted hover:border-gold"
+            }`}
+          >
+            ✦ {p.title}
+          </button>
+        ))}
       </div>
 
-      <p className="text-sm text-ink-muted max-w-2xl">
-        Réordonnez, supprimez ou ajoutez des sections sur la page « {PAGE_LABELS[page]} ». Sans mise en page
-        personnalisée, l'ordre d'origine est utilisé.
-      </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <p className="text-sm text-ink-muted max-w-2xl">
+          Réordonnez, supprimez ou ajoutez des sections sur la page « {label} ». Le bloc « Grille (colonnes) »
+          permet de placer plusieurs éléments côte à côte.
+          {custom && (
+            <>
+              {" "}
+              Adresse publique : <code className="bg-muted px-1">/p/{customMeta?.slug}</code>
+            </>
+          )}
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={duplicatePage}
+            className="inline-flex items-center gap-2 border border-gold/50 text-brand px-4 py-2 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
+          >
+            <Copy size={13} /> Dupliquer en nouvelle page
+          </button>
+          {custom && (
+            <button
+              onClick={deleteCustom}
+              className="inline-flex items-center gap-2 border border-destructive/30 text-destructive px-4 py-2 text-xs uppercase tracking-widest hover:bg-destructive hover:text-white"
+            >
+              <Trash2 size={13} /> Supprimer la page
+            </button>
+          )}
+        </div>
+      </div>
 
       {!enabled ? (
         <button
           onClick={start}
           className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-5 py-3 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
         >
-          <Plus size={14} /> Personnaliser cette page
+          <Plus size={14} /> Charger le contenu actuel & personnaliser
         </button>
       ) : (
         <>
           <BlockBuilder
             blocks={blocks}
-            modules={PAGE_MODULES[page]}
+            modules={custom ? [] : PAGE_MODULES[page as PageKey]}
             onChange={(next: LayoutBlock[]) => save(page, { blocks: next, enabled: true })}
           />
+          {!custom && (
           <div className="flex gap-3">
             <button
               onClick={async () => {
@@ -1034,6 +1141,7 @@ function PagesAdmin() {
               Revenir à la mise en page d'origine
             </button>
           </div>
+          )}
         </>
       )}
       <style>{`
@@ -1044,12 +1152,140 @@ function PagesAdmin() {
   );
 }
 
+// ============ EN-TÊTE & IDENTITÉ ============
+function IdentityAdmin() {
+  const { header, saveHeader } = useHeaderSettings();
+  const { settings } = useSiteSettings();
+  const [draft, setDraft] = useState(header);
+  const [saving, setSaving] = useState(false);
+  const customPages = settings.customPages || [];
+
+  function set<K extends keyof typeof draft>(k: K, v: (typeof draft)[K]) {
+    setDraft((d) => ({ ...d, [k]: v }));
+  }
+  function setItem(i: number, p: Partial<MenuItem>) {
+    const menu = [...draft.menu];
+    menu[i] = { ...menu[i], ...p };
+    set("menu", menu);
+  }
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= draft.menu.length) return;
+    const menu = [...draft.menu];
+    [menu[i], menu[j]] = [menu[j], menu[i]];
+    set("menu", menu);
+  }
+
+  return (
+    <section className="container-x py-10 max-w-3xl space-y-6">
+      <p className="eyebrow">En-tête du site</p>
+      <div className="border border-border bg-white p-5 space-y-4">
+        <Row>
+          <Field label="Logo — texte" help="Utilisé si aucune image de logo">
+            <input value={draft.logoText} onChange={(e) => set("logoText", e.target.value)} className="form-input" />
+          </Field>
+          <Field label="Baseline à côté du logo">
+            <input value={draft.logoTagline} onChange={(e) => set("logoTagline", e.target.value)} className="form-input" />
+          </Field>
+        </Row>
+        <Field label="Logo — image (URL)" help="PNG ou SVG transparent, hauteur libre">
+          <div className="flex gap-2">
+            <input value={draft.logoImage} onChange={(e) => set("logoImage", e.target.value)} className="form-input flex-1" placeholder="https://…" />
+            <MediaUploadButton onUploaded={(url) => set("logoImage", url)} folder="identity" accept="image/*" />
+          </div>
+        </Field>
+        <Field label="Favicon (URL)" help="Icône de l'onglet — PNG/SVG carré, 64×64 conseillé">
+          <div className="flex gap-2">
+            <input value={draft.faviconUrl} onChange={(e) => set("faviconUrl", e.target.value)} className="form-input flex-1" placeholder="https://…" />
+            <MediaUploadButton onUploaded={(url) => set("faviconUrl", url)} folder="identity" accept="image/*" />
+          </div>
+        </Field>
+        {(draft.logoImage || draft.faviconUrl) && (
+          <div className="flex items-center gap-6 pt-2 border-t border-border">
+            {draft.logoImage && <img src={draft.logoImage} alt="" className="h-9 w-auto object-contain" />}
+            {draft.faviconUrl && <img src={draft.faviconUrl} alt="" className="size-6 object-contain" />}
+          </div>
+        )}
+      </div>
+
+      <p className="eyebrow">Menu de navigation</p>
+      <div className="border border-border bg-white divide-y divide-border">
+        {draft.menu.map((m, i) => (
+          <div key={i} className="flex items-center gap-2 p-3 flex-wrap">
+            <input value={m.label} onChange={(e) => setItem(i, { label: e.target.value })} placeholder="Libellé" className="form-input flex-1 min-w-[120px]" />
+            <input value={m.href} onChange={(e) => setItem(i, { href: e.target.value })} placeholder="/portfolio" className="form-input flex-1 min-w-[140px]" />
+            <label className="inline-flex items-center gap-1.5 text-xs">
+              <input type="checkbox" checked={m.visible !== false} onChange={(e) => setItem(i, { visible: e.target.checked })} /> Visible
+            </label>
+            <button onClick={() => move(i, -1)} className="text-xs px-2 text-ink-muted hover:text-brand">↑</button>
+            <button onClick={() => move(i, 1)} className="text-xs px-2 text-ink-muted hover:text-brand">↓</button>
+            <button onClick={() => set("menu", draft.menu.filter((_, j) => j !== i))} className="text-destructive"><Trash2 size={14} /></button>
+          </div>
+        ))}
+        <div className="p-3 flex flex-wrap gap-2">
+          <button
+            onClick={() => set("menu", [...draft.menu, { label: "Nouvelle entrée", href: "/", visible: true }])}
+            className="inline-flex items-center gap-1.5 border border-border px-3 py-1.5 text-xs uppercase tracking-widest hover:border-gold"
+          >
+            <Plus size={12} /> Ajouter une entrée
+          </button>
+          {customPages.map((p) => (
+            <button
+              key={p.slug}
+              onClick={() => set("menu", [...draft.menu, { label: p.title, href: `/p/${p.slug}`, visible: true }])}
+              className="inline-flex items-center gap-1.5 border border-gold/40 px-3 py-1.5 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand"
+            >
+              <Plus size={12} /> {p.title}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        disabled={saving}
+        onClick={async () => {
+          setSaving(true);
+          try {
+            await saveHeader(draft);
+            toast.success("En-tête mis à jour");
+          } catch (e: any) {
+            toast.error(e?.message || "Erreur");
+          } finally {
+            setSaving(false);
+          }
+        }}
+        className="inline-flex items-center gap-2 bg-brand text-brand-foreground px-5 py-3 text-xs uppercase tracking-widest hover:bg-gold hover:text-brand disabled:opacity-50"
+      >
+        {saving && <Loader2 size={13} className="animate-spin" />} Enregistrer l'en-tête
+      </button>
+      <style>{`.form-input { width: 100%; background: white; border: 1px solid var(--rule); padding: 0.5rem 0.75rem; font-size: 0.875rem; color: var(--ink); outline: none; } .form-input:focus { border-color: var(--gold); }`}</style>
+    </section>
+  );
+}
+
 // ============ RÉGLAGES GLOBAUX ============
 function SettingsAdmin() {
   const { settings, save } = useSiteSettings();
   return (
     <section className="container-x py-10 max-w-2xl space-y-6">
       <p className="eyebrow">Réglages du site</p>
+      <label className="flex items-start gap-3 border border-border bg-white p-4">
+        <input
+          type="checkbox"
+          checked={settings.showClients !== false}
+          onChange={async (e) => {
+            await save({ showClients: e.target.checked });
+            toast.success("Réglage enregistré");
+          }}
+          className="mt-1"
+        />
+        <span>
+          <span className="block text-sm text-brand font-medium">Bandeau « Ils nous font confiance »</span>
+          <span className="block text-xs text-ink-muted mt-1">
+            Affiche ou masque le défilement des clients sur la page d'accueil.
+          </span>
+        </span>
+      </label>
       <label className="flex items-start gap-3 border border-border bg-white p-4">
         <input
           type="checkbox"

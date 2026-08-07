@@ -15,14 +15,17 @@ const LightboxCtx = createContext<LB>({ images: [], open: () => {} });
 export function ProjectBlocks({ blocks }: { blocks: LayoutBlock[] }) {
   const images = useMemo(() => {
     const out: string[] = [];
-    for (const b of blocks) {
+    const walk = (list: LayoutBlock[]) => {
+      for (const b of list) {
       if (b.type === "image" && b.url && (!b.mockup || b.mockup === "none")) out.push(resolve(b.url));
       else if (b.type === "gallery") {
         for (const u of b.urls) if (u) out.push(resolve(u));
       } else if (b.type === "text_image" && b.url && b.position !== "overlay") {
         out.push(resolve(b.url));
+      } else if (b.type === "columns") walk(b.children || []);
       }
-    }
+    };
+    walk(blocks);
     return out;
   }, [blocks]);
   const [idx, setIdx] = useState(-1);
@@ -288,12 +291,36 @@ function BlockView({ block }: { block: LayoutBlock }) {
 
     case "pdf":
       return (
-        <section className="py-6 md:py-12 bg-brand">
+        <section className="py-6 md:py-12" style={{ background: block.bg || "var(--brand, #0B1F3A)" }}>
+          {block.title && (
+            <div className="max-w-6xl mx-auto px-4 md:px-8 pb-6 text-center">
+              <h2 className="font-serif text-2xl md:text-4xl text-canvas text-balance">{block.title}</h2>
+            </div>
+          )}
           <div className="w-full h-[82svh] md:h-[96vh]">
-            <Flipbook url={block.url} caption={block.caption} />
+            <Flipbook url={block.url} caption={block.caption} bg={block.bg} />
           </div>
         </section>
       );
+
+    case "columns": {
+      const gap = block.gap === "lg" ? "gap-8 md:gap-12" : block.gap === "sm" ? "gap-2 md:gap-4" : "gap-4 md:gap-8";
+      const cols = block.cols === 3 ? "md:grid-cols-3" : "md:grid-cols-2";
+      return (
+        <section className="py-5 md:py-10">
+          <div className="max-w-6xl mx-auto px-4 md:px-8">
+            <SectionTitle title={block.title} />
+            <div className={`grid grid-cols-1 ${cols} ${gap} items-start`}>
+              {(block.children || []).map((child) => (
+                <div key={child.id} className="min-w-0 [&_section]:py-0 [&_section>div]:px-0 [&_section>div]:max-w-none">
+                  <BlockView block={child} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
 
     case "module":
       return null;

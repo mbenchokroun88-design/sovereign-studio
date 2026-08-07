@@ -12,7 +12,7 @@ import heroImg from "@/assets/hero.jpg";
 import { useEffect, useState } from "react";
 import { useHeroSlides } from "@/lib/store/hero";
 import { useClients } from "@/lib/store/clients";
-import { HeroSplit } from "@/components/site/HeroSplit";
+import { HeroUnified } from "@/components/site/HeroUnified";
 import { PageSections } from "@/components/site/PageSections";
 import { PAGE_DEFAULT_ORDER, PAGE_MODULES } from "@/lib/store/pages";
 import { useSiteSettings, sortProjects } from "@/lib/store/settings";
@@ -75,39 +75,45 @@ function Index() {
 
   const modules: Record<string, React.ReactNode> = {
     hero: (
-      <HeroSplit
+      <HeroUnified
         slides={activeSlides}
         index={slideIndex}
         setIndex={setSlideIndex}
         fallbackImg={heroImg}
       />
     ),
-    clients: (
+    clients: settings.showClients === false ? null : (
       <section className="bg-brand text-canvas border-y border-canvas/10">
         <div className="container-x flex items-center justify-between py-3">
           <span className="eyebrow text-canvas/50 m-0">Ils nous font confiance</span>
           <span className="text-[10px] font-mono text-canvas/40">— Sélection</span>
         </div>
-        <div className="flex animate-marquee whitespace-nowrap py-4 will-change-transform overflow-hidden">
-          {[...Array(2)].map((_, dup) => (
-            <div key={dup} className="flex items-center gap-12 px-6 shrink-0">
-              {clients.filter((c) => c.visible).map((c) => (
-                <span key={c.id} className="flex items-center gap-12">
-                  {c.logo_url ? (
-                    <img
-                      src={c.logo_url}
-                      alt={c.name}
-                      className="h-9 md:h-11 w-auto object-contain opacity-55 hover:opacity-100 transition-opacity"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span className="font-serif text-xl md:text-2xl text-canvas/40 hover:text-canvas/80 transition-colors">{c.name}</span>
-                  )}
-                  <span className="text-gold">✦</span>
-                </span>
-              ))}
-            </div>
-          ))}
+        <div className="overflow-hidden py-4">
+          <div className="flex w-max animate-marquee whitespace-nowrap will-change-transform">
+            {[0, 1].map((dup) => (
+              <div key={dup} className="flex items-center shrink-0" aria-hidden={dup === 1}>
+                {clients
+                  .filter((c) => c.visible)
+                  .map((c) => (
+                    <span key={c.id} className="flex items-center gap-8 md:gap-12 pr-8 md:pr-12">
+                      {c.logo_url ? (
+                        <img
+                          src={c.logo_url}
+                          alt={c.name}
+                          className="h-9 md:h-11 w-auto object-contain opacity-55 hover:opacity-100 transition-opacity"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="font-serif text-xl md:text-2xl text-canvas/45 hover:text-canvas/90 transition-colors">
+                          {c.name}
+                        </span>
+                      )}
+                      <span className="text-gold">✦</span>
+                    </span>
+                  ))}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     ),

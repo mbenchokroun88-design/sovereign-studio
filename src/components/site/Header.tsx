@@ -1,34 +1,49 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-
-const nav = [
-  { to: "/", label: "Accueil" },
-  { to: "/portfolio", label: "Portfolio" },
-  { to: "/about", label: "Studio" },
-  { to: "/contact", label: "Contact" },
-] as const;
+import { useHeaderSettings } from "@/lib/store/settings";
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const { header } = useHeaderSettings();
+  const nav = (header.menu || []).filter((m) => m.visible !== false && m.href);
+
+  // Favicon piloté depuis l'admin
+  useEffect(() => {
+    if (!header.faviconUrl) return;
+    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = header.faviconUrl;
+  }, [header.faviconUrl]);
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-canvas/85 backdrop-blur-md">
       <div className="container-x flex h-16 items-center justify-between">
         <Link to="/" className="flex items-baseline gap-2 group">
-          <span className="font-serif italic font-bold text-xl tracking-tight text-brand">
-            MB.
-          </span>
-          <span className="hidden sm:inline text-[10px] uppercase tracking-[0.22em] text-ink-muted group-hover:text-gold transition-colors">
-            Benchokroun · Studio
-          </span>
+          {header.logoImage ? (
+            <img src={header.logoImage} alt={header.logoText || "Logo"} className="h-8 w-auto object-contain" />
+          ) : (
+            <span className="font-serif italic font-bold text-xl tracking-tight text-brand">
+              {header.logoText}
+            </span>
+          )}
+          {header.logoTagline && (
+            <span className="hidden sm:inline text-[10px] uppercase tracking-[0.22em] text-ink-muted group-hover:text-gold transition-colors">
+              {header.logoTagline}
+            </span>
+          )}
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
           {nav.map((n) => (
             <Link
-              key={n.to}
-              to={n.to}
-              activeOptions={{ exact: n.to === "/" }}
+              key={n.href}
+              to={n.href as never}
+              activeOptions={{ exact: n.href === "/" }}
               className="text-sm text-ink-muted hover:text-brand transition-colors"
               activeProps={{ className: "text-brand font-medium" }}
             >
@@ -53,8 +68,8 @@ export function Header() {
           <div className="container-x py-4 flex flex-col gap-1">
             {nav.map((n) => (
               <Link
-                key={n.to}
-                to={n.to}
+                key={n.href}
+                to={n.href as never}
                 onClick={() => setOpen(false)}
                 className="py-3 px-2 text-base text-ink hover:text-gold border-b border-border last:border-0"
                 activeProps={{ className: "text-gold" }}

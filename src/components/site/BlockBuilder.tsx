@@ -27,6 +27,8 @@ import {
   Loader2,
   Columns,
   LayoutTemplate,
+  Grid2X2,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,7 +94,17 @@ const BLOCK_MENU: { type: BlockType; label: string; icon: any; make: () => Layou
     icon: MoveVertical,
     make: () => ({ id: newBlockId(), type: "spacer", size: "md" }),
   },
+  {
+    type: "columns",
+    label: "Grille (colonnes)",
+    icon: Grid2X2,
+    make: () => ({ id: newBlockId(), type: "columns", cols: 2, gap: "md", title: "", children: [] }),
+  },
 ];
+
+export function makeBlock(type: BlockType): LayoutBlock {
+  return BLOCK_MENU.find((b) => b.type === type)!.make();
+}
 
 export function BlockBuilder({
   blocks,
@@ -310,9 +322,119 @@ function BlockEditor({
           ))}
         </div>
       );
+    case "columns":
+      return <ColumnsEditor block={block} onChange={onChange as any} />;
     default:
       return null;
   }
+}
+
+/** Grille : plusieurs blocs côte à côte pour composer une page librement. */
+function ColumnsEditor({
+  block,
+  onChange,
+}: {
+  block: Extract<LayoutBlock, { type: "columns" }>;
+  onChange: (p: Partial<Extract<LayoutBlock, { type: "columns" }>>) => void;
+}) {
+  const children = block.children || [];
+  const setChild = (i: number, p: Partial<LayoutBlock>) => {
+    const next = [...children];
+    next[i] = { ...next[i], ...p } as LayoutBlock;
+    onChange({ children: next });
+  };
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= children.length) return;
+    const next = [...children];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange({ children: next });
+  };
+
+  return (
+    <div className="space-y-3">
+      <input
+        value={block.title || ""}
+        onChange={(e) => onChange({ title: e.target.value })}
+        placeholder="Titre de la grille (optionnel)"
+        className="form-input"
+      />
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] uppercase tracking-widest text-ink-muted">Colonnes :</span>
+        {([2, 3] as const).map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => onChange({ cols: c })}
+            className={`text-[11px] px-3 py-1 border ${
+              block.cols === c ? "bg-brand text-brand-foreground border-brand" : "border-border text-ink-muted hover:border-gold"
+            }`}
+          >
+            {c}
+          </button>
+        ))}
+        <span className="text-[10px] uppercase tracking-widest text-ink-muted ml-3">Espacement :</span>
+        {(["sm", "md", "lg"] as const).map((g) => (
+          <button
+            key={g}
+            type="button"
+            onClick={() => onChange({ gap: g })}
+            className={`text-[11px] px-3 py-1 border ${
+              (block.gap || "md") === g ? "bg-brand text-brand-foreground border-brand" : "border-border text-ink-muted hover:border-gold"
+            }`}
+          >
+            {g === "sm" ? "Serré" : g === "md" ? "Normal" : "Aéré"}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
+        <span className="text-[10px] uppercase tracking-widest text-ink-muted self-center mr-1">Ajouter dans la grille :</span>
+        {BLOCK_MENU.filter((b) => b.type !== "columns").map((b) => (
+          <button
+            key={b.type}
+            type="button"
+            onClick={() => onChange({ children: [...children, makeBlock(b.type)] })}
+            className="inline-flex items-center gap-1 border border-border px-2 py-1 text-[11px] text-ink-muted hover:border-gold hover:text-brand"
+          >
+            <Plus size={10} /> {b.label}
+          </button>
+        ))}
+      </div>
+
+      {children.length === 0 ? (
+        <p className="text-xs text-ink-muted py-6 text-center bg-muted border border-dashed border-border">
+          Grille vide — ajoutez des éléments, ils se placeront côte à côte.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {children.map((c, i) => (
+            <div key={c.id} className="border border-border">
+              <div className="flex items-center justify-between px-2 py-1.5 bg-muted/60 border-b border-border">
+                <span className="text-[10px] uppercase tracking-widest text-brand font-semibold">
+                  Colonne {i + 1} · {labelFor(c.type)}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={() => move(i, -1)} className="text-xs text-ink-muted hover:text-brand">↑</button>
+                  <button type="button" onClick={() => move(i, 1)} className="text-xs text-ink-muted hover:text-brand">↓</button>
+                  <button
+                    type="button"
+                    onClick={() => onChange({ children: children.filter((_, j) => j !== i) })}
+                    className="text-destructive text-xs inline-flex items-center gap-1"
+                  >
+                    <Trash2 size={11} /> Retirer
+                  </button>
+                </div>
+              </div>
+              <div className="p-2">
+                <BlockEditor block={c} onChange={(p) => setChild(i, p)} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ImageEditor({
@@ -623,6 +745,12 @@ function PdfEditor({
 
   return (
     <div className="space-y-2">
+      <input
+        value={block.title || ""}
+        onChange={(e) => onChange({ title: e.target.value })}
+        placeholder="Titre de la section (ex. Voir le projet en entier)"
+        className="form-input"
+      />
       <div className="flex gap-2">
         <input
           value={block.url}
@@ -654,9 +782,21 @@ function PdfEditor({
       <input
         value={block.caption || ""}
         onChange={(e) => onChange({ caption: e.target.value })}
-        placeholder="Légende (optionnel)"
+        placeholder="Texte d'introduction sous le titre (optionnel)"
         className="form-input"
       />
+      <label className="flex items-center gap-3 text-xs text-ink-muted">
+        Couleur de fond de la section
+        <input
+          type="color"
+          value={block.bg || "#0B1F3A"}
+          onChange={(e) => onChange({ bg: e.target.value })}
+          className="h-8 w-14 border border-border bg-white"
+        />
+        <button type="button" onClick={() => onChange({ bg: "" })} className="underline hover:text-brand">
+          réinitialiser
+        </button>
+      </label>
     </div>
   );
 }
