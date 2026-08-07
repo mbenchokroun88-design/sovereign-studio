@@ -1272,6 +1272,23 @@ function SettingsAdmin() {
       <label className="flex items-start gap-3 border border-border bg-white p-4">
         <input
           type="checkbox"
+          checked={settings.showClients !== false}
+          onChange={async (e) => {
+            await save({ showClients: e.target.checked });
+            toast.success("Réglage enregistré");
+          }}
+          className="mt-1"
+        />
+        <span>
+          <span className="block text-sm text-brand font-medium">Bandeau « Ils nous font confiance »</span>
+          <span className="block text-xs text-ink-muted mt-1">
+            Affiche ou masque le défilement des clients sur la page d'accueil.
+          </span>
+        </span>
+      </label>
+      <label className="flex items-start gap-3 border border-border bg-white p-4">
+        <input
+          type="checkbox"
           checked={!!settings.chronological}
           onChange={async (e) => {
             await save({ chronological: e.target.checked });
