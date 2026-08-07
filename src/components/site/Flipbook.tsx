@@ -24,6 +24,8 @@ interface FlipbookProps {
   size?: FlipSizeOpt;
   /** Caractère de l'animation de page */
   animation?: FlipAnimationOpt;
+  /** Couleur de fond de la scène */
+  bg?: string;
 }
 
 const SIZE_FACTOR: Record<FlipSizeOpt, { h: number; w: number }> = {
@@ -59,9 +61,10 @@ const Page = forwardRef<HTMLDivElement, { src?: string | null }>(({ src }, ref) 
 ));
 Page.displayName = "Page";
 
-export function Flipbook({ url, caption, size = "lg", animation = "normal" }: FlipbookProps) {
+export function Flipbook({ url, caption, size = "lg", animation = "normal", bg }: FlipbookProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
+  const drag = useRef<{ x: number; y: number; t: number } | null>(null);
   const [pages, setPages] = useState<(string | null)[]>([]);
   const [aspect, setAspect] = useState(0.707);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
@@ -162,13 +165,43 @@ export function Flipbook({ url, caption, size = "lg", animation = "normal" }: Fl
 
   const loadingPct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
 
+  const flip = (dir: 1 | -1) => {
+    const pf = bookRef.current?.pageFlip?.();
+    if (!pf) return;
+    if (dir === 1) pf.flipNext("top");
+    else pf.flipPrev("top");
+  };
+
   return (
     <div
       ref={wrapRef}
-      className="w-full h-full flex flex-col items-center justify-center gap-5 bg-brand select-none"
+      className="w-full h-full flex flex-col items-center justify-center gap-5 select-none"
+      style={{ background: bg || "var(--brand, #0B1F3A)" }}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <div className="relative flex-1 w-full flex items-center justify-center">
+      <div
+        className="relative flex-1 w-full flex items-center justify-center touch-pan-y"
+        onPointerDown={(e) => {
+          drag.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+        }}
+        onPointerUp={(e) => {
+          const start = drag.current;
+          drag.current = null;
+          if (!start) return;
+          const dx = e.clientX - start.x;
+          const dy = e.clientY - start.y;
+          // Glissement horizontal depuis n'importe quel endroit de la page
+          if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
+            flip(dx < 0 ? 1 : -1);
+            return;
+          }
+          // Simple tap / clic : moitié droite = page suivante
+          if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && Date.now() - start.t < 600) {
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            flip(e.clientX - rect.left > rect.width / 2 ? 1 : -1);
+          }
+        }}
+      >
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
           <div className="w-3/4 h-3/4 rounded-full bg-gold/10 blur-[140px]" />
         </div>
@@ -196,11 +229,23 @@ export function Flipbook({ url, caption, size = "lg", animation = "normal" }: Fl
               flippingTime={ANIM[animation].time}
               startZIndex={10}
               autoSize={false}
-              useMouseEvents
+              useMouseEvents={false}
               clickEventForward={false}
-              swipeDistance={12}
-              showPageCorners
+              showPageCorners={false}
               startPage={0}
+              onInit={() => {
+                // La couverture est « dure » par défaut : on la rend souple
+                // pour qu'elle s'ouvre comme les pages intérieures.
+                try {
+                  const pf = bookRef.current?.pageFlip?.();
+                  if (!pf) return;
+                  const n = pf.getPageCount();
+                  for (let i = 0; i < n; i++) pf.getPage(i)?.setDensity("soft");
+                  pf.update();
+                } catch {
+                  /* ignore */
+                }
+              }}
             >
               {leaves.map((src, i) => (
                 <Page key={i} src={src} />
