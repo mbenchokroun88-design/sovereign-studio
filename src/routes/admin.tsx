@@ -36,8 +36,17 @@ import {
   type FlipAnimation,
 } from "@/lib/store/projects";
 import { VIEW_LABELS } from "@/components/site/ProjectImageLayouts";
-import { usePageLayouts, PAGE_LABELS, PAGE_MODULES, PAGE_DEFAULT_ORDER, type PageKey } from "@/lib/store/pages";
-import { useSiteSettings } from "@/lib/store/settings";
+import {
+  usePageLayouts,
+  PAGE_LABELS,
+  PAGE_MODULES,
+  PAGE_DEFAULT_ORDER,
+  CUSTOM_PREFIX,
+  isCustomPage,
+  type PageKey,
+  type AnyPageKey,
+} from "@/lib/store/pages";
+import { useSiteSettings, useHeaderSettings, type MenuItem } from "@/lib/store/settings";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -112,7 +121,7 @@ function Admin() {
   const [creating, setCreating] = useState(false);
   const [eventTemplate, setEventTemplate] = useState<Draft | null>(null);
   const [smartImporting, setSmartImporting] = useState(false);
-  const [tab, setTab] = useState<"projects" | "hero" | "clients" | "pages" | "settings">("projects");
+  const [tab, setTab] = useState<"projects" | "hero" | "clients" | "pages" | "identity" | "settings">("projects");
   const [migratingId, setMigratingId] = useState<string | null>(null);
   const [migratingAll, setMigratingAll] = useState(false);
   const migrateProject = useServerFn(migrateProjectMedia);
@@ -210,6 +219,7 @@ function Admin() {
             { id: "hero" as const, label: "Slider d'accueil" },
             { id: "clients" as const, label: "Clients" },
             { id: "pages" as const, label: "Pages" },
+            { id: "identity" as const, label: "En-tête & identité" },
             { id: "settings" as const, label: "Réglages" },
           ].map((t) => (
             <button
@@ -311,6 +321,7 @@ function Admin() {
       {tab === "hero" && <HeroAdmin />}
       {tab === "clients" && <ClientsAdmin />}
       {tab === "pages" && <PagesAdmin />}
+      {tab === "identity" && <IdentityAdmin />}
       {tab === "settings" && <SettingsAdmin />}
 
       {(editing || creating || eventTemplate) && (
