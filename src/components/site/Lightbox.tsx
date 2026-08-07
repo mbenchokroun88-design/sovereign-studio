@@ -35,6 +35,30 @@ export function Lightbox({
     };
   }, [prev, next, onClose]);
 
+  /**
+   * Le bouton « retour » du téléphone doit fermer la galerie, pas quitter la page :
+   * on empile un état d'historique à l'ouverture et on le consomme à la fermeture.
+   */
+  useEffect(() => {
+    let popped = false;
+    try {
+      window.history.pushState({ lightbox: true }, "");
+    } catch {
+      /* ignore */
+    }
+    const onPop = () => {
+      popped = true;
+      onClose();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (!popped && (window.history.state as { lightbox?: boolean } | null)?.lightbox) {
+        window.history.back();
+      }
+    };
+  }, [onClose]);
+
   const touch = useRef<{ x: number; y: number } | null>(null);
 
   if (index < 0 || !images[index]) return null;

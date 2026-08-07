@@ -3,6 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import type { LayoutBlock } from "@/lib/store/projects";
 
 export type PageKey = "home" | "portfolio" | "project" | "studio" | "contact";
+/** Clé de page : une page native ou une page créée dans l'admin (`custom-<slug>`). */
+export type AnyPageKey = PageKey | string;
+
+export const CUSTOM_PREFIX = "custom-";
+export const isCustomPage = (k: AnyPageKey) => k.startsWith(CUSTOM_PREFIX);
 
 export const PAGE_LABELS: Record<PageKey, string> = {
   home: "Accueil",
@@ -54,7 +59,7 @@ export const PAGE_DEFAULT_ORDER: Record<PageKey, string[]> = {
 };
 
 export interface PageLayout {
-  page: PageKey;
+  page: AnyPageKey;
   blocks: LayoutBlock[];
   enabled: boolean;
 }
@@ -80,7 +85,7 @@ export function usePageLayouts() {
 
   const refresh = () => qc.invalidateQueries({ queryKey: KEY });
 
-  const save = async (page: PageKey, patch: Partial<Omit<PageLayout, "page">>) => {
+  const save = async (page: AnyPageKey, patch: Partial<Omit<PageLayout, "page">>) => {
     const current = layouts.find((l) => l.page === page);
     const row = {
       page,
@@ -93,16 +98,16 @@ export function usePageLayouts() {
     await refresh();
   };
 
-  const reset = async (page: PageKey) => {
+  const reset = async (page: AnyPageKey) => {
     const { error } = await supabase.from(TABLE).delete().eq("page", page);
     if (error) throw error;
     await refresh();
   };
 
-  return { layouts, isLoading, save, reset, get: (p: PageKey) => layouts.find((l) => l.page === p) };
+  return { layouts, isLoading, save, reset, get: (p: AnyPageKey) => layouts.find((l) => l.page === p) };
 }
 
-export function usePageLayout(page: PageKey) {
+export function usePageLayout(page: AnyPageKey) {
   const { layouts, isLoading } = usePageLayouts();
   return { layout: layouts.find((l) => l.page === page), isLoading };
 }

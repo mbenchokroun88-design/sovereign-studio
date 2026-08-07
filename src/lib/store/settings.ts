@@ -2,9 +2,48 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Project } from "@/lib/store/projects";
 
+export interface MenuItem {
+  label: string;
+  href: string;
+  visible?: boolean;
+}
+
+export interface HeaderSettings {
+  logoText: string;
+  logoTagline: string;
+  /** Logo image (remplace le texte si renseigné) */
+  logoImage: string;
+  faviconUrl: string;
+  menu: MenuItem[];
+}
+
+export interface CustomPage {
+  slug: string;
+  title: string;
+}
+
+export const DEFAULT_HEADER: HeaderSettings = {
+  logoText: "MB.",
+  logoTagline: "Benchokroun · Studio",
+  logoImage: "",
+  faviconUrl: "",
+  menu: [
+    { label: "Accueil", href: "/", visible: true },
+    { label: "Portfolio", href: "/portfolio", visible: true },
+    { label: "Studio", href: "/about", visible: true },
+    { label: "Contact", href: "/contact", visible: true },
+  ],
+};
+
 export interface GlobalSettings {
   /** Classer les projets / événements du plus récent au plus ancien */
   chronological?: boolean;
+  /** Afficher le bandeau « Ils nous font confiance » sur l'accueil */
+  showClients?: boolean;
+  /** Identité du site : logo, favicon, menu */
+  header?: Partial<HeaderSettings>;
+  /** Pages créées depuis l'admin (mode Elementor) */
+  customPages?: CustomPage[];
 }
 
 const TABLE = "site_settings" as never;
@@ -34,6 +73,20 @@ export function useSiteSettings() {
   };
 
   return { settings, isLoading, save };
+}
+
+/** Réglages d'en-tête avec valeurs par défaut appliquées. */
+export function useHeaderSettings() {
+  const { settings, isLoading, save } = useSiteSettings();
+  const header: HeaderSettings = {
+    ...DEFAULT_HEADER,
+    ...(settings.header || {}),
+    menu:
+      settings.header?.menu && settings.header.menu.length
+        ? settings.header.menu
+        : DEFAULT_HEADER.menu,
+  };
+  return { header, isLoading, saveHeader: (p: Partial<HeaderSettings>) => save({ header: { ...header, ...p } }) };
 }
 
 /** Tri chronologique descendant (année, puis ordre existant) quand l'option est active. */
