@@ -61,6 +61,16 @@ function ClickableImg({ src, alt, className }: { src: string; alt?: string; clas
 }
 
 function BlockView({ block }: { block: LayoutBlock }) {
+  return <BlockBody block={block} />;
+}
+
+/** Cinematic carousel wired to the page lightbox so clicking the centre image opens it. */
+function CinematicGallery({ items, urls }: { items: MediaItem[]; urls: string[] }) {
+  const { open } = useContext(LightboxCtx);
+  return <CinematicCarousel media={items} onOpen={(i) => open(resolve(urls[i]))} />;
+}
+
+function BlockBody({ block }: { block: LayoutBlock }) {
   switch (block.type) {
     case "image": {
       const src = resolve(block.url);
