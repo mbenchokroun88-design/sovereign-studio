@@ -51,8 +51,7 @@ export function ProjectImageLayouts({ images, mode }: { images: string[]; mode: 
       <>
         <div
           ref={railRef}
-          className="md:hidden flex snap-x snap-mandatory overflow-x-auto scrollbar-none gap-3 px-4 -mx-0"
-          style={{ scrollBehavior: "smooth" }}
+          className="md:hidden flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain touch-pan-x scrollbar-none gap-3 px-4"
         >
           {list.map((u, i) => (
             <div key={i} className="snap-center shrink-0 w-[86vw] bg-muted grid place-items-center">
