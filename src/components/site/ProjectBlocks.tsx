@@ -133,7 +133,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
           <section className="py-4 md:py-8">
             <div className="max-w-6xl mx-auto px-2 md:px-8">
               <SectionTitle title={block.title} />
-              <CinematicCarousel media={items} onOpen={() => {}} />
+              <CinematicGallery items={items} urls={urls} />
               {block.caption && (
                 <p className="mt-4 text-xs text-ink-muted uppercase tracking-widest text-center">
                   {block.caption}
