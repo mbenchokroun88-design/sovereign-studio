@@ -222,3 +222,12 @@
     background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.18) 45%, rgba(0,0,0,0.28) 50%, rgba(0,0,0,0.18) 55%, transparent 100%);
   }
 }
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

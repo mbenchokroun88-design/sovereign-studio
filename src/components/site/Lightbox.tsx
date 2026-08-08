@@ -66,7 +66,9 @@ export function Lightbox({
   return (
     <div
       className="fixed inset-0 z-[100] bg-brand/95 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200"
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
       onTouchStart={(e) => {
         touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       }}

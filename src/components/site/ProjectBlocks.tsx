@@ -61,6 +61,16 @@ function ClickableImg({ src, alt, className }: { src: string; alt?: string; clas
 }
 
 function BlockView({ block }: { block: LayoutBlock }) {
+  return <BlockBody block={block} />;
+}
+
+/** Cinematic carousel wired to the page lightbox so clicking the centre image opens it. */
+function CinematicGallery({ items, urls }: { items: MediaItem[]; urls: string[] }) {
+  const { open } = useContext(LightboxCtx);
+  return <CinematicCarousel media={items} onOpen={(i) => open(resolve(urls[i]))} />;
+}
+
+function BlockBody({ block }: { block: LayoutBlock }) {
   switch (block.type) {
     case "image": {
       const src = resolve(block.url);
@@ -133,7 +143,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
           <section className="py-4 md:py-8">
             <div className="max-w-6xl mx-auto px-2 md:px-8">
               <SectionTitle title={block.title} />
-              <CinematicCarousel media={items} onOpen={() => {}} />
+              <CinematicGallery items={items} urls={urls} />
               {block.caption && (
                 <p className="mt-4 text-xs text-ink-muted uppercase tracking-widest text-center">
                   {block.caption}
@@ -151,7 +161,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
               <SectionTitle title={block.title} />
             </div>
             {/* Mobile: swipeable snap rail */}
-            <div className="md:hidden flex snap-x snap-mandatory overflow-x-auto scrollbar-none gap-3 px-4">
+            <div className="md:hidden flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain touch-pan-x scrollbar-none gap-3 px-4">
               {urls.map((u, i) => (
                 <div key={i} className="snap-center shrink-0 w-[86vw] bg-muted grid place-items-center">
                   <ClickableImg src={resolve(u)} className="w-full h-auto block object-contain" />
