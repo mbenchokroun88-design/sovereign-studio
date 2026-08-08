@@ -9,39 +9,40 @@ function resolve(u: string) {
   return isDriveUrl(u) ? toDriveImage(u) : u;
 }
 
-type LB = { images: string[]; open: (url: string) => void };
-const LightboxCtx = createContext<LB>({ images: [], open: () => {} });
+type LB = { open: (el: HTMLElement | null, src: string) => void };
+const LightboxCtx = createContext<LB>({ open: () => {} });
 
 export function ProjectBlocks({ blocks }: { blocks: LayoutBlock[] }) {
-  const images = useMemo(() => {
-    const out: string[] = [];
-    const walk = (list: LayoutBlock[]) => {
-      for (const b of list) {
-      if (b.type === "image" && b.url && (!b.mockup || b.mockup === "none")) out.push(resolve(b.url));
-      else if (b.type === "gallery") {
-        for (const u of b.urls) if (u) out.push(resolve(u));
-      } else if (b.type === "text_image" && b.url && b.position !== "overlay") {
-        out.push(resolve(b.url));
-      } else if (b.type === "columns") walk(b.children || []);
-      }
-    };
-    walk(blocks);
-    return out;
-  }, [blocks]);
-  const [idx, setIdx] = useState(-1);
-  const open = (url: string) => {
-    const i = images.indexOf(url);
-    if (i >= 0) setIdx(i);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [lb, setLb] = useState<{ images: string[]; index: number } | null>(null);
+
+  /**
+   * The gallery is built from what is actually rendered (visible, non-cropped images),
+   * so a click always finds itself in the list whatever the layout.
+   */
+  const open = (el: HTMLElement | null, src: string) => {
+    const nodes = Array.from(
+      rootRef.current?.querySelectorAll<HTMLImageElement>("img[data-lb]") ?? [],
+    ).filter((n) => n.offsetParent !== null || n === el);
+    const images = Array.from(new Set(nodes.map((n) => n.currentSrc || n.src)));
+    const mine = el instanceof HTMLImageElement ? el.currentSrc || el.src : src;
+    const i = images.indexOf(mine);
+    setLb({ images: images.length ? images : [mine], index: i >= 0 ? i : 0 });
   };
   return (
-    <LightboxCtx.Provider value={{ images, open }}>
-      <div className="bg-white">
+    <LightboxCtx.Provider value={{ open }}>
+      <div className="bg-white" ref={rootRef}>
         {blocks.map((b) => (
           <BlockView key={b.id} block={b} />
         ))}
       </div>
-      {idx >= 0 && (
-        <Lightbox images={images} index={idx} onClose={() => setIdx(-1)} onIndex={setIdx} />
+      {lb && (
+        <Lightbox
+          images={lb.images}
+          index={lb.index}
+          onClose={() => setLb(null)}
+          onIndex={(i) => setLb((s) => (s ? { ...s, index: i } : s))}
+        />
       )}
     </LightboxCtx.Provider>
   );
@@ -54,7 +55,8 @@ function ClickableImg({ src, alt, className }: { src: string; alt?: string; clas
       src={src}
       alt={alt || ""}
       loading="lazy"
-      onClick={() => open(src)}
+      data-lb=""
+      onClick={(e) => open(e.currentTarget, src)}
       className={`${className || ""} cursor-zoom-in transition-transform duration-500 hover:scale-[1.01]`}
     />
   );
@@ -67,7 +69,7 @@ function BlockView({ block }: { block: LayoutBlock }) {
 /** Cinematic carousel wired to the page lightbox so clicking the centre image opens it. */
 function CinematicGallery({ items, urls }: { items: MediaItem[]; urls: string[] }) {
   const { open } = useContext(LightboxCtx);
-  return <CinematicCarousel media={items} onOpen={(i) => open(resolve(urls[i]))} />;
+  return <CinematicCarousel media={items} onOpen={(i) => open(null, resolve(urls[i]))} />;
 }
 
 function BlockBody({ block }: { block: LayoutBlock }) {
@@ -374,20 +376,44 @@ function VideoBlock({ url, caption }: { url: string; caption?: string }) {
   if (isNative) {
     return <NativeVideoBlock url={url} caption={caption} />;
   }
+  // Chrome-free playback: no title, no logo, no controls, no suggestions — just the moving image.
   const base = toVideoEmbed(url);
-  const sep = base.includes("?") ? "&" : "?";
-  const src = `${base}${sep}autoplay=${play ? 1 : 0}&mute=1&muted=1&playsinline=1&loop=1`;
+  const ytId = base.match(/youtube(?:-nocookie)?\.com\/embed\/([\w-]{11})/)?.[1];
+  let src: string;
+  if (ytId) {
+    const q = new URLSearchParams({
+      autoplay: play ? "1" : "0",
+      mute: "1",
+      controls: "0",
+      modestbranding: "1",
+      rel: "0",
+      showinfo: "0",
+      iv_load_policy: "3",
+      disablekb: "1",
+      fs: "0",
+      playsinline: "1",
+      loop: "1",
+      playlist: ytId,
+    });
+    src = `https://www.youtube-nocookie.com/embed/${ytId}?${q.toString()}`;
+  } else {
+    const sep = base.includes("?") ? "&" : "?";
+    src = `${base}${sep}autoplay=${play ? 1 : 0}&muted=1&background=1&title=0&byline=0&portrait=0&controls=0&loop=1&playsinline=1`;
+  }
   return (
     <section className="py-8 md:py-14">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-        <div ref={ref} className="aspect-video bg-black">
+        <div ref={ref} className="relative aspect-video bg-black overflow-hidden">
           <iframe
             src={src}
-            className="w-full h-full"
+            className="w-full h-full pointer-events-none"
             allow="autoplay; fullscreen"
             allowFullScreen
             title={caption || "video"}
+            frameBorder={0}
           />
+          {/* Swallows hover/clicks so no player UI, title or share overlay can appear. */}
+          <div className="absolute inset-0" aria-hidden />
         </div>
         {caption && (
           <p className="mt-3 text-xs text-ink-muted uppercase tracking-widest text-center">

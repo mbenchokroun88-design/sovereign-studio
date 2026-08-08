@@ -41,12 +41,22 @@ export function Lightbox({
    */
   useEffect(() => {
     let popped = false;
+    const openedAt = Date.now();
     try {
       window.history.pushState({ lightbox: true }, "");
     } catch {
       /* ignore */
     }
     const onPop = () => {
+      // Ignore the echo of our own history cleanup (React re-mounts effects in dev).
+      if (Date.now() - openedAt < 600) {
+        try {
+          window.history.pushState({ lightbox: true }, "");
+        } catch {
+          /* ignore */
+        }
+        return;
+      }
       popped = true;
       onClose();
     };
