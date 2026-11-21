@@ -12,6 +12,8 @@ export const Route = createFileRoute("/about")({
       { name: "description", content: "Studio de design institutionnel à Rabat. Six disciplines pour les institutions internationales." },
       { property: "og:title", content: "Studio & Expertise — Mohamed Benchokroun" },
       { property: "og:description", content: "Six disciplines, une signature institutionnelle." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: About,

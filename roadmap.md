@@ -1,0 +1,3 @@
+- [x] Expliquer comment consulter le backend et exporter la base pour la réutiliser ailleurs.
+- [ ] Relier le compte GitHub fourni depuis les paramètres du projet; cette action attend l’intervention de l’utilisateur.
+- [x] Corriger la compatibilité après la mise à jour des paquets et vérifier que le build passe.

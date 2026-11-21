@@ -18,6 +18,8 @@ export const Route = createFileRoute("/contact")({
       { name: "description", content: "Discutons de votre prochaine mission. Studio basé à Rabat, disponible pour des missions internationales." },
       { property: "og:title", content: "Contact — Mohamed Benchokroun" },
       { property: "og:description", content: "Démarrer un projet institutionnel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Contact,

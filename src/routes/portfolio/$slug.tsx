@@ -21,6 +21,21 @@ import {
 } from "@/components/site/ProjectImageLayouts";
 
 export const Route = createFileRoute("/portfolio/$slug")({
+  head: ({ params }) => {
+    const projectName = params.slug.replace(/-/g, " ");
+    const title = `${projectName} — Portfolio de Mohamed Benchokroun`;
+    const description = `Projet de design institutionnel par Mohamed Benchokroun, designer à Rabat.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary" },
+      ],
+    };
+  },
   component: ProjectDetail,
   notFoundComponent: () => (
     <SiteLayout>

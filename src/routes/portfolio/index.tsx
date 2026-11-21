@@ -14,6 +14,8 @@ export const Route = createFileRoute("/portfolio/")({
       { name: "description", content: "Sélection de projets d'identité, rapports, événements, vidéo, 3D et plateformes numériques." },
       { property: "og:title", content: "Portfolio — Mohamed Benchokroun" },
       { property: "og:description", content: "Index des projets institutionnels." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Portfolio,

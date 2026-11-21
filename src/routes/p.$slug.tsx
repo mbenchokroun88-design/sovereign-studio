@@ -5,15 +5,22 @@ import { usePageLayout, CUSTOM_PREFIX } from "@/lib/store/pages";
 import { useSiteSettings } from "@/lib/store/settings";
 
 export const Route = createFileRoute("/p/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Page — Mohamed Benchokroun" },
-      { name: "description", content: "Page composée depuis la console d'administration." },
-      { name: "robots", content: "noindex, nofollow, noarchive, nosnippet, noimageindex" },
-      { property: "og:title", content: "Mohamed Benchokroun — Studio" },
-      { property: "og:description", content: "Page du studio Mohamed Benchokroun." },
-    ],
-  }),
+  head: ({ params }) => {
+    const pageName = params.slug.replace(/-/g, " ");
+    const title = `${pageName} — Studio Mohamed Benchokroun`;
+    const description = `Page du studio de Mohamed Benchokroun, designer à Rabat.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { name: "robots", content: "noindex, nofollow, noarchive, nosnippet, noimageindex" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary" },
+      ],
+    };
+  },
   component: CustomPageView,
 });
 

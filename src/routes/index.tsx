@@ -28,6 +28,8 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:title", content: "Mohamed Benchokroun — Visual Architect & Designer" },
       { property: "og:description", content: "Design institutionnel pour clients européens et américains." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Index,
